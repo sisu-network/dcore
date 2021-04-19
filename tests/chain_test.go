@@ -9,18 +9,18 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ava-labs/coreth"
-	"github.com/ava-labs/coreth/accounts/keystore"
-	"github.com/ava-labs/coreth/core"
-	"github.com/ava-labs/coreth/core/rawdb"
-	"github.com/ava-labs/coreth/core/state"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/eth"
-	"github.com/ava-labs/coreth/params"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/mighty-chain/coreth"
+	"github.com/mighty-chain/coreth/accounts/keystore"
+	"github.com/mighty-chain/coreth/core"
+	"github.com/mighty-chain/coreth/core/rawdb"
+	"github.com/mighty-chain/coreth/core/state"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/eth"
+	"github.com/mighty-chain/coreth/params"
 )
 
 type testChain struct {

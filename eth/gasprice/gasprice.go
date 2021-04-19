@@ -32,11 +32,11 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/params"
-	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/params"
+	"github.com/mighty-chain/coreth/rpc"
 )
 
 var DefaultMaxPrice = big.NewInt(500 * params.GWei)

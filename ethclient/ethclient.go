@@ -35,12 +35,12 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/coreth"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/mighty-chain/coreth"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/rpc"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.

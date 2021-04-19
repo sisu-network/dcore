@@ -1,4 +1,4 @@
-module github.com/ava-labs/coreth
+module github.com/mighty-chain/coreth
 
 go 1.14
 

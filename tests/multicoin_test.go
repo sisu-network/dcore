@@ -18,17 +18,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ava-labs/coreth"
-	"github.com/ava-labs/coreth/accounts/keystore"
-	"github.com/ava-labs/coreth/core"
-	"github.com/ava-labs/coreth/core/rawdb"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/core/vm"
-	"github.com/ava-labs/coreth/eth"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/mighty-chain/coreth"
+	"github.com/mighty-chain/coreth/accounts/keystore"
+	"github.com/mighty-chain/coreth/core"
+	"github.com/mighty-chain/coreth/core/rawdb"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/core/vm"
+	"github.com/mighty-chain/coreth/eth"
 )
 
 // TestMulticoin tests multicoin low-level state management and regular
@@ -62,7 +62,7 @@ func TestMulticoin(t *testing.T) {
 	//if gopath == "" {
 	//	gopath = build.Default.GOPATH
 	//}
-	//counterSrc, err := filepath.Abs(gopath + "/src/github.com/ava-labs/coreth/examples/multicoin/mc_test.sol")
+	//counterSrc, err := filepath.Abs(gopath + "/src/github.com/mighty-chain/coreth/examples/multicoin/mc_test.sol")
 	//if err != nil {
 	// 	t.Fatal(err)
 	// }

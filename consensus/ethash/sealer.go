@@ -40,10 +40,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ava-labs/coreth/consensus"
-	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/mighty-chain/coreth/consensus"
+	"github.com/mighty-chain/coreth/core/types"
 )
 
 const (

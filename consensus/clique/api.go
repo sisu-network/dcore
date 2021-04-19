@@ -29,10 +29,10 @@ package clique
 import (
 	"fmt"
 
-	"github.com/ava-labs/coreth/consensus"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/mighty-chain/coreth/consensus"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/rpc"
 )
 
 // API is a user facing RPC API to allow controlling the signer and voting
