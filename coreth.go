@@ -236,3 +236,10 @@ func (self *ETHChain) GetTxPool() *core.TxPool {
 func (self *ETHChain) SetGasPrice(newGasPrice *big.Int) {
 	self.backend.SetGasPrice(newGasPrice)
 }
+
+//////////////////////////////////////////////////////////////////////
+////  Added functions
+//////////////////////////////////////////////////////////////////////
+func (self *ETHChain) SoftValidateTx(tx *types.Transaction, local bool) error {
+	return self.backend.TxPool().ValidateTx(tx, local)
+}
