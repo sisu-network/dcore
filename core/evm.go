@@ -29,10 +29,10 @@ package core
 import (
 	"math/big"
 
-	"github.com/ava-labs/coreth/consensus"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/core/vm"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/mighty-chain/coreth/consensus"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/core/vm"
 	//"github.com/ethereum/go-ethereum/log"
 )
 

@@ -34,16 +34,16 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ava-labs/coreth/consensus"
-	"github.com/ava-labs/coreth/consensus/misc"
-	"github.com/ava-labs/coreth/core/state"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/params"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
+	"github.com/mighty-chain/coreth/consensus"
+	"github.com/mighty-chain/coreth/consensus/misc"
+	"github.com/mighty-chain/coreth/core/state"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/params"
 	"golang.org/x/crypto/sha3"
 )
 

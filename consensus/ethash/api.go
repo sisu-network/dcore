@@ -29,9 +29,9 @@ package ethash
 import (
 	"errors"
 
-	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/mighty-chain/coreth/core/types"
 )
 
 var errEthashStopped = errors.New("ethash stopped")

@@ -5,10 +5,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ava-labs/coreth/eth/filters"
+	"github.com/mighty-chain/coreth/eth/filters"
 
-	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/mighty-chain/coreth/core/types"
 )
 
 func TestBlockLogsAllowUnfinalized(t *testing.T) {

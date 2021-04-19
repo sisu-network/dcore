@@ -29,11 +29,11 @@ package rawdb
 import (
 	"encoding/json"
 
-	"github.com/ava-labs/coreth/params"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/mighty-chain/coreth/params"
 )
 
 // ReadDatabaseVersion retrieves the version number of the database.

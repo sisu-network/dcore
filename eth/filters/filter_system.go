@@ -34,14 +34,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ava-labs/coreth/core"
-	"github.com/ava-labs/coreth/core/rawdb"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/rpc"
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/mighty-chain/coreth/core"
+	"github.com/mighty-chain/coreth/core/rawdb"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/rpc"
 )
 
 // Type determines the kind of filter and is used to put the filter in to

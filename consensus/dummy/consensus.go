@@ -12,14 +12,14 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/ava-labs/coreth/consensus"
-	"github.com/ava-labs/coreth/core/state"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/params"
-	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
+	"github.com/mighty-chain/coreth/consensus"
+	"github.com/mighty-chain/coreth/core/state"
+	"github.com/mighty-chain/coreth/core/types"
+	"github.com/mighty-chain/coreth/params"
+	"github.com/mighty-chain/coreth/rpc"
 )
 
 type OnFinalizeCallbackType = func(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header)
