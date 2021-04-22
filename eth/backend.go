@@ -121,6 +121,7 @@ type Ethereum struct {
 func New(stack *node.Node, config *Config,
 	cb *dummy.ConsensusCallbacks,
 	mcb *miner.MinerCallbacks,
+	backendCb *types.BackendAPICallback,
 	chainDb ethdb.Database,
 	settings Settings,
 	initGenesis bool,
@@ -249,7 +250,7 @@ func New(stack *node.Node, config *Config,
 	eth.miner = miner.New(eth, &config.Miner, chainConfig, eth.EventMux(), eth.engine, eth.isLocalBlock, mcb)
 	// eth.miner.SetExtra(makeExtraData(config.Miner.ExtraData))
 
-	eth.APIBackend = &EthAPIBackend{stack.Config().ExtRPCEnabled(), eth, nil}
+	eth.APIBackend = &EthAPIBackend{stack.Config().ExtRPCEnabled(), eth, nil, backendCb}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.GasPrice

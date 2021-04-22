@@ -62,6 +62,10 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 	return signer
 }
 
+func MakeEIP155Signer(config *params.ChainConfig) Signer {
+	return NewEIP155Signer(config.ChainID)
+}
+
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
