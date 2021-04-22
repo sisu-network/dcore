@@ -375,7 +375,7 @@ func (vm *VM) Initialize(
 	// initialize state with the genesis block.
 	lastAcceptedBytes, lastAcceptedErr := vm.chaindb.Get(lastAcceptedKey)
 	initGenesis := lastAcceptedErr == database.ErrNotFound
-	chain := coreth.NewETHChain(&config, &nodecfg, vm.chaindb, vm.CLIConfig.EthBackendSettings(), initGenesis)
+	chain := coreth.NewETHChain(&config, &nodecfg, vm.chaindb, vm.CLIConfig.EthBackendSettings(), initGenesis, nil)
 	vm.chain = chain
 	vm.networkID = config.NetworkId
 

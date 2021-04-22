@@ -59,6 +59,7 @@ type EthAPIBackend struct {
 	extRPCEnabled bool
 	eth           *Ethereum
 	gpo           *gasprice.Oracle
+	cb            *types.BackendAPICallback
 }
 
 // ChainConfig returns the active chain configuration.
@@ -400,4 +401,8 @@ func (b *EthAPIBackend) CurrentHeader() *types.Header {
 
 func (b *EthAPIBackend) GetMaxBlocksPerRequest() int64 {
 	return b.eth.settings.MaxBlocksPerRequest
+}
+
+func (b *EthAPIBackend) GetBackendAPICallback() *types.BackendAPICallback {
+	return b.cb
 }

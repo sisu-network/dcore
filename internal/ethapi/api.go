@@ -1591,11 +1591,10 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	if err := checkTxFee(tx.GasPrice(), tx.Gas(), b.RPCTxFeeCap()); err != nil {
 		return common.Hash{}, err
 	}
-	if err := b.SendTx(ctx, tx); err != nil {
-		return common.Hash{}, err
-	}
+
 	if tx.To() == nil {
-		signer := types.MakeSigner(b.ChainConfig(), b.CurrentBlock().Number())
+		// signer := types.MakeSigner(b.ChainConfig(), b.CurrentBlock().Number())
+		signer := types.MakeEIP155Signer(b.ChainConfig())
 		from, err := types.Sender(signer, tx)
 		if err != nil {
 			return common.Hash{}, err
@@ -1605,6 +1604,19 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	} else {
 		log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
 	}
+
+	cb := b.GetBackendAPICallback()
+	if cb.OnTxSubmitted != nil {
+		// We don't send it to ETH tx pool. Instead, make a callback so that it could be sent to
+		// Tendermint mem pool.
+		cb.OnTxSubmitted(tx)
+	} else {
+		if err := b.SendTx(ctx, tx); err != nil {
+			return common.Hash{}, err
+		}
+	}
+
+	// Make a callback
 	return tx.Hash(), nil
 }
 
