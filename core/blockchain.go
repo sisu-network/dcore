@@ -429,9 +429,9 @@ func (bc *BlockChain) empty() bool {
 // assumes that the chain manager mutex is held.
 func (bc *BlockChain) loadLastState(initGenesis bool) error {
 	// Initialize genesis state
-	if initGenesis {
-		return bc.loadGenesisState()
-	}
+	// if initGenesis {
+	// 	return bc.loadGenesisState()
+	// }
 
 	// Restore the last known head block
 	head := rawdb.ReadHeadBlockHash(bc.db)
@@ -439,8 +439,8 @@ func (bc *BlockChain) loadLastState(initGenesis bool) error {
 		// Original code:
 		// // Corrupt or empty database, init from scratch
 		// log.Warn("Empty database, resetting chain")
-		// return bc.Reset()
-		return errors.New("could not read head block hash")
+		return bc.Reset()
+		// return errors.New("could not read head block hash")
 	}
 	// Make sure the entire head block is available
 	currentBlock := bc.GetBlockByHash(head)
@@ -448,8 +448,8 @@ func (bc *BlockChain) loadLastState(initGenesis bool) error {
 		// Original code:
 		// // Corrupt or empty database, init from scratch
 		// log.Warn("Head block missing, resetting chain", "hash", head)
-		// return bc.Reset()
-		return fmt.Errorf("could not load head block %s", head.Hex())
+		return bc.Reset()
+		// return fmt.Errorf("could not load head block %s", head.Hex())
 	}
 	// Everything seems to be fine, set as the head block
 	bc.currentBlock.Store(currentBlock)
@@ -690,47 +690,47 @@ func (bc *BlockChain) StateCache() state.Database {
 	return bc.stateCache
 }
 
-// Original code:
 // // Reset purges the entire blockchain, restoring it to its genesis state.
 // // Assumes that caller holds [chainmu].
-// func (bc *BlockChain) Reset() error {
-// 	return bc.ResetWithGenesisBlock(bc.genesisBlock, true)
-// }
-//
-// // ResetWithGenesisBlock purges the entire blockchain, restoring it to the
-// // specified genesis state.
-// func (bc *BlockChain) ResetWithGenesisBlock(genesis *types.Block, chainmuHeld bool) error {
-// 	// To prevent deadlock, we must allow the caller to specify if chainmu should
-// 	// be acquired.
-// 	if !chainmuHeld {
-// 		bc.chainmu.Lock()
-// 		defer bc.chainmu.Unlock()
-// 	}
-//
-// 	// Dump the entire block chain and purge the caches
-// 	if err := bc.setHead(0); err != nil {
-// 		return err
-// 	}
-//
-// 	// Prepare the genesis block and reinitialise the chain
-// 	batch := bc.db.NewBatch()
-// 	rawdb.WriteTd(batch, genesis.Hash(), genesis.NumberU64(), genesis.Difficulty())
-// 	rawdb.WriteBlock(batch, genesis)
-// 	if err := batch.Write(); err != nil {
-// 		log.Crit("Failed to write genesis block", "err", err)
-// 	}
-// 	bc.writeHeadBlock(genesis)
-//
-// 	// Last update all in-memory chain markers
-// 	bc.genesisBlock = genesis
-// 	bc.currentBlock.Store(bc.genesisBlock)
-// 	headBlockGauge.Update(int64(bc.genesisBlock.NumberU64()))
-// 	bc.hc.SetGenesis(bc.genesisBlock.Header())
-// 	bc.hc.SetCurrentHeader(bc.genesisBlock.Header())
-// 	bc.currentFastBlock.Store(bc.genesisBlock)
-// 	headFastBlockGauge.Update(int64(bc.genesisBlock.NumberU64()))
-// 	return nil
-// }
+func (bc *BlockChain) Reset() error {
+	return bc.ResetWithGenesisBlock(bc.genesisBlock, true)
+}
+
+// ResetWithGenesisBlock purges the entire blockchain, restoring it to the
+// specified genesis state.
+func (bc *BlockChain) ResetWithGenesisBlock(genesis *types.Block, chainmuHeld bool) error {
+	// To prevent deadlock, we must allow the caller to specify if chainmu should
+	// be acquired.
+	if !chainmuHeld {
+		bc.chainmu.Lock()
+		defer bc.chainmu.Unlock()
+	}
+
+	// Original code:
+	// Dump the entire block chain and purge the caches
+	// if err := bc.setHead(0); err != nil {
+	// 	return err
+	// }
+
+	// Prepare the genesis block and reinitialise the chain
+	batch := bc.db.NewBatch()
+	rawdb.WriteTd(batch, genesis.Hash(), genesis.NumberU64(), genesis.Difficulty())
+	rawdb.WriteBlock(batch, genesis)
+	if err := batch.Write(); err != nil {
+		log.Crit("Failed to write genesis block", "err", err)
+	}
+	bc.writeHeadBlock(genesis)
+
+	// Last update all in-memory chain markers
+	bc.genesisBlock = genesis
+	bc.currentBlock.Store(bc.genesisBlock)
+	headBlockGauge.Update(int64(bc.genesisBlock.NumberU64()))
+	bc.hc.SetGenesis(bc.genesisBlock.Header())
+	bc.hc.SetCurrentHeader(bc.genesisBlock.Header())
+	bc.currentFastBlock.Store(bc.genesisBlock)
+	headFastBlockGauge.Update(int64(bc.genesisBlock.NumberU64()))
+	return nil
+}
 
 func (bc *BlockChain) loadGenesisState() error {
 	// Prepare the genesis block and reinitialise the chain
