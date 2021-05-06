@@ -29,12 +29,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/trie"
-	accountKeystore "github.com/mighty-chain/coreth/accounts/keystore"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/eth"
-	"github.com/mighty-chain/coreth/params"
-	"github.com/mighty-chain/coreth/rpc"
+	accountKeystore "github.com/sisu-network/dcore/accounts/keystore"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/eth"
+	"github.com/sisu-network/dcore/params"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 var (

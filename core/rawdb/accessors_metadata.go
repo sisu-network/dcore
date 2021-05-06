@@ -33,7 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/params"
 )
 
 // ReadDatabaseVersion retrieves the version number of the database.

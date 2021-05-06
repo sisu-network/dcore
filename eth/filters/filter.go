@@ -32,15 +32,15 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/mighty-chain/coreth/core/vm"
+	"github.com/sisu-network/dcore/core/vm"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/bloombits"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/bloombits"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 type Backend interface {

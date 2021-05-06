@@ -33,10 +33,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/bitutil"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/bloombits"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/bloombits"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 const (

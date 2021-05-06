@@ -42,8 +42,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 const (

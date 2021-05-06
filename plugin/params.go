@@ -8,7 +8,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/mighty-chain/coreth/plugin/evm"
+	"github.com/sisu-network/dcore/plugin/evm"
 )
 
 var (

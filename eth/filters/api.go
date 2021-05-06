@@ -40,8 +40,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 var (

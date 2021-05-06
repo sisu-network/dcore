@@ -39,7 +39,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/mighty-chain/coreth/core/rawdb"
+	"github.com/sisu-network/dcore/core/rawdb"
 )
 
 var (

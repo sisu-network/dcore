@@ -38,8 +38,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // ChainIndexerBackend defines the methods needed to process chain segments in

@@ -40,12 +40,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/internal/ethapi"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/internal/ethapi"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // PublicEthereumAPI provides an API to access Ethereum full node-related

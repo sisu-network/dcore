@@ -45,8 +45,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/mighty-chain/coreth/accounts"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 var (

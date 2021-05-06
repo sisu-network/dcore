@@ -1,4 +1,4 @@
-module github.com/mighty-chain/coreth
+module github.com/sisu-network/dcore
 
 go 1.14
 

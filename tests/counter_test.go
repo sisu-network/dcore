@@ -16,7 +16,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/types"
 
 	"github.com/ethereum/go-ethereum/log"
 )
@@ -30,7 +30,7 @@ func TestCounter(t *testing.T) {
 
 	// NOTE: use precompiled `counter.sol` for portability, do not remove the
 	// following code (for debug purpose)
-	//counterSrc, err := filepath.Abs(gopath + "/src/github.com/mighty-chain/coreth/examples/counter/counter.sol")
+	//counterSrc, err := filepath.Abs(gopath + "/src/github.com/sisu-network/dcore/examples/counter/counter.sol")
 	// if err != nil {
 	// 	t.Fatal(err)
 	// }

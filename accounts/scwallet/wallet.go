@@ -48,8 +48,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	pcsc "github.com/gballet/go-libpcsclite"
-	"github.com/mighty-chain/coreth/accounts"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/core/types"
 	"github.com/status-im/keycard-go/derivationpath"
 )
 

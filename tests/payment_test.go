@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // TestPayment tests basic payment (balance, not multi-coin)

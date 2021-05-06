@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 func TestSoftValidation(t *testing.T) {

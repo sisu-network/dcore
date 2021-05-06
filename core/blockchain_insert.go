@@ -32,7 +32,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // insertStats tracks and reports on block insertion.

@@ -36,8 +36,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 // ReadCanonicalHash retrieves the hash assigned to a canonical block number.

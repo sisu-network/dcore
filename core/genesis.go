@@ -42,10 +42,10 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go

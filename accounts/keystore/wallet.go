@@ -31,8 +31,8 @@ import (
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/mighty-chain/coreth/accounts"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // keystoreWallet implements the accounts.Wallet interface for the original

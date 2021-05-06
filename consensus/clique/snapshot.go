@@ -36,8 +36,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 // Vote represents a single vote that an authorized signer made to modify the

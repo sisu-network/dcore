@@ -6,8 +6,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 func TestAcceptedHeadSubscriptions(t *testing.T) {

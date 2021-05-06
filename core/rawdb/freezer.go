@@ -40,8 +40,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/mighty-chain/coreth/params"
 	"github.com/prometheus/tsdb/fileutil"
+	"github.com/sisu-network/dcore/params"
 )
 
 var (
