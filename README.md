@@ -3,7 +3,8 @@
 While this repo is in private, you should config your go get to use private repo
 
 ```
-go env -w GOPRIVATE=github.com/acme-corporation
+git config --global url.git@github.com:.insteadOf https://github.com/
+go env -w GOPRIVATE=github.com/sisu-network/dcore
 ```
 
-More on private go get [here](https://golang.cafe/blog/how-to-fix-go-mod-unknown-revision.html).
+More on private go get [here](https://stackoverflow.com/a/27501039).
