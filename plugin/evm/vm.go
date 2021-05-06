@@ -185,7 +185,7 @@ type VM struct {
 	chainID      *big.Int
 	networkID    uint64
 	genesisHash  common.Hash
-	chain        *coreth.ETHChain
+	chain        *dcore.ETHChain
 	chainConfig  *params.ChainConfig
 	db           database.Database
 	chaindb      Database
@@ -327,7 +327,7 @@ func (vm *VM) Initialize(
 
 	// Set minimum gas price and launch goroutine to sleep until
 	// network upgrade when the gas price must be changed
-	var gasPriceUpdate func() // must call after coreth.NewETHChain to avoid race
+	var gasPriceUpdate func() // must call after dcore.NewETHChain to avoid race
 	if g.Config.ApricotPhase1BlockTimestamp == nil {
 		config.Miner.GasPrice = params.LaunchMinGasPrice
 		config.GPO.Default = params.LaunchMinGasPrice
@@ -375,7 +375,7 @@ func (vm *VM) Initialize(
 	// initialize state with the genesis block.
 	lastAcceptedBytes, lastAcceptedErr := vm.chaindb.Get(lastAcceptedKey)
 	initGenesis := lastAcceptedErr == database.ErrNotFound
-	chain := coreth.NewETHChain(&config, &nodecfg, vm.chaindb, vm.CLIConfig.EthBackendSettings(), initGenesis, nil)
+	chain := dcore.NewETHChain(&config, &nodecfg, vm.chaindb, vm.CLIConfig.EthBackendSettings(), initGenesis, nil)
 	vm.chain = chain
 	vm.networkID = config.NetworkId
 
