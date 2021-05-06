@@ -47,8 +47,8 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/hashicorp/golang-lru/simplelru"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 var ErrInvalidDumpMagic = errors.New("invalid dump magic")

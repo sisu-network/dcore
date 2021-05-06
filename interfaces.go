@@ -33,7 +33,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // NotFound is returned by API methods if the requested item does not exist.

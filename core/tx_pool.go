@@ -40,9 +40,9 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 const (

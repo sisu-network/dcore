@@ -31,7 +31,7 @@ import (
 	"sort"
 
 	"github.com/holiman/uint256"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/params"
 )
 
 var activators = map[int]func(*JumpTable){

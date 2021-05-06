@@ -34,8 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction

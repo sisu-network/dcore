@@ -32,12 +32,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mighty-chain/coreth/accounts"
-	"github.com/mighty-chain/coreth/accounts/external"
-	"github.com/mighty-chain/coreth/accounts/keystore"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/accounts/external"
+	"github.com/sisu-network/dcore/accounts/keystore"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // Original code:

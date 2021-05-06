@@ -11,14 +11,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/mighty-chain/coreth/consensus/dummy"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/eth"
-	"github.com/mighty-chain/coreth/miner"
-	"github.com/mighty-chain/coreth/node"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/consensus/dummy"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/eth"
+	"github.com/sisu-network/dcore/miner"
+	"github.com/sisu-network/dcore/node"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 var (

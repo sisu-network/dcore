@@ -36,8 +36,8 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/mighty-chain/coreth/accounts"
 	"github.com/pborman/uuid"
+	"github.com/sisu-network/dcore/accounts"
 	"golang.org/x/crypto/pbkdf2"
 )
 

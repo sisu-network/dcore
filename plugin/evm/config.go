@@ -3,7 +3,7 @@
 
 package evm
 
-import "github.com/mighty-chain/coreth/eth"
+import "github.com/sisu-network/dcore/eth"
 
 // CommandLineConfig ...
 type CommandLineConfig struct {

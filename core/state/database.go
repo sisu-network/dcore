@@ -35,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/trie"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/mighty-chain/coreth/core/rawdb"
+	"github.com/sisu-network/dcore/core/rawdb"
 )
 
 const (

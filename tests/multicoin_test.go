@@ -22,13 +22,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth"
-	"github.com/mighty-chain/coreth/accounts/keystore"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/core/vm"
-	"github.com/mighty-chain/coreth/eth"
+	"github.com/sisu-network/dcore"
+	"github.com/sisu-network/dcore/accounts/keystore"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/eth"
 )
 
 // TestMulticoin tests multicoin low-level state management and regular
@@ -62,7 +62,7 @@ func TestMulticoin(t *testing.T) {
 	//if gopath == "" {
 	//	gopath = build.Default.GOPATH
 	//}
-	//counterSrc, err := filepath.Abs(gopath + "/src/github.com/mighty-chain/coreth/examples/multicoin/mc_test.sol")
+	//counterSrc, err := filepath.Abs(gopath + "/src/github.com/sisu-network/dcore/examples/multicoin/mc_test.sol")
 	//if err != nil {
 	// 	t.Fatal(err)
 	// }

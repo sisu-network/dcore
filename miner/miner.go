@@ -33,10 +33,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 // Backend wraps all methods required for mining.

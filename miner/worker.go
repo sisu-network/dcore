@@ -38,12 +38,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/consensus/misc"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/consensus/misc"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 const (

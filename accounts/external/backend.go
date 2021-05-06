@@ -37,9 +37,9 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/signer/core"
-	"github.com/mighty-chain/coreth/accounts"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 type ExternalBackend struct {

@@ -31,8 +31,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/mighty-chain/coreth/core/vm"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 )
 
 /*

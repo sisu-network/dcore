@@ -39,11 +39,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/consensus/misc"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/consensus/misc"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 	"golang.org/x/crypto/sha3"
 )
 

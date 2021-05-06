@@ -27,7 +27,7 @@
 package node
 
 import (
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 const (

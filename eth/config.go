@@ -37,11 +37,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/mighty-chain/coreth/consensus/ethash"
-	"github.com/mighty-chain/coreth/core"
-	"github.com/mighty-chain/coreth/eth/gasprice"
-	"github.com/mighty-chain/coreth/miner"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/consensus/ethash"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/eth/gasprice"
+	"github.com/sisu-network/dcore/miner"
+	"github.com/sisu-network/dcore/params"
 )
 
 // DefaultFullGPOConfig contains default gasprice oracle settings for full node.

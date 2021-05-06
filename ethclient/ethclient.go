@@ -38,9 +38,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/mighty-chain/coreth"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.

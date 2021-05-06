@@ -31,7 +31,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/mighty-chain/coreth/eth/tracers/internal/tracers"
+	"github.com/sisu-network/dcore/eth/tracers/internal/tracers"
 )
 
 // all contains all the built in JavaScript tracers by name.

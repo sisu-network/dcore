@@ -31,8 +31,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/event"
 
-	"github.com/mighty-chain/coreth/accounts"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // Node is a container on which services can be registered.

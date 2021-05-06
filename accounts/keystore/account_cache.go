@@ -40,7 +40,7 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/mighty-chain/coreth/accounts"
+	"github.com/sisu-network/dcore/accounts"
 )
 
 // Minimum amount of time between cache reloads. This limit applies if the platform does

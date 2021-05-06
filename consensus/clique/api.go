@@ -30,9 +30,9 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/rpc"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // API is a user facing RPC API to allow controlling the signer and voting

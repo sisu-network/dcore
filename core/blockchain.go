@@ -45,13 +45,13 @@ import (
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/rlp"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/mighty-chain/coreth/consensus"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/state/snapshot"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/core/vm"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/state/snapshot"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 )
 
 var (

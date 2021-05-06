@@ -40,9 +40,9 @@ import (
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/mighty-chain/coreth/core/rawdb"
-	"github.com/mighty-chain/coreth/core/state/snapshot"
-	"github.com/mighty-chain/coreth/core/types"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/state/snapshot"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 type revision struct {

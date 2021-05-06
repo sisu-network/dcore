@@ -27,9 +27,9 @@
 package core
 
 import (
-	"github.com/mighty-chain/coreth/core/state"
-	"github.com/mighty-chain/coreth/core/types"
-	"github.com/mighty-chain/coreth/core/vm"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/core/vm"
 )
 
 // Validator is an interface which defines the standard for block validation. It

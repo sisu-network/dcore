@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/ava-labs/avalanchego/utils/formatting"
-	"github.com/mighty-chain/coreth/core"
+	"github.com/sisu-network/dcore/core"
 )
 
 // StaticService defines the static API services exposed by the evm

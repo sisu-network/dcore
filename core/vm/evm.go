@@ -35,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/mighty-chain/coreth/params"
+	"github.com/sisu-network/dcore/params"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
