@@ -1262,7 +1262,7 @@ func (bc *BlockChain) insertStopped() bool {
 }
 
 // procFutureBlocks has been removed because there is no need for a concept
-// of future blocks in the context of coreth.
+// of future blocks in the context of dcore.
 // Original Code:
 // func (bc *BlockChain) procFutureBlocks() {
 // 	blocks := make([]*types.Block, 0, bc.futureBlocks.Len())
@@ -2624,7 +2624,7 @@ func (bc *BlockChain) reorg(oldBlock, newBlock *types.Block) error {
 }
 
 // update has been removed since there is no need for a concept of future blocks
-// in the context of coreth.
+// in the context of dcore.
 // Original Code:
 // func (bc *BlockChain) update() {
 // 	futureTimer := time.NewTicker(5 * time.Second)

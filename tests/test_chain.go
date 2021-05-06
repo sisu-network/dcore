@@ -47,7 +47,7 @@ func init() {
 	alice = genKey
 }
 
-func NewDefaultChain(t *testing.T) (*coreth.ETHChain, chan *types.Block, chan core.NewTxPoolHeadEvent, <-chan core.NewTxsEvent) {
+func NewDefaultChain(t *testing.T) (*dcore.ETHChain, chan *types.Block, chan core.NewTxPoolHeadEvent, <-chan core.NewTxsEvent) {
 	// configure the chain
 	config := eth.NewDefaultConfig()
 	chainConfig := &params.ChainConfig{
@@ -76,7 +76,7 @@ func NewDefaultChain(t *testing.T) (*coreth.ETHChain, chan *types.Block, chan co
 		Alloc:      core.GenesisAlloc{fundedKey.Address: {Balance: initialBalance}},
 	}
 
-	chain := coreth.NewETHChain(&config, nil, rawdb.NewMemoryDatabase(), eth.DefaultSettings, true, nil)
+	chain := dcore.NewETHChain(&config, nil, rawdb.NewMemoryDatabase(), eth.DefaultSettings, true, nil)
 
 	if err := chain.Accept(chain.GetGenesisBlock()); err != nil {
 		t.Fatal(err)

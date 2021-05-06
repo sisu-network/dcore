@@ -13,7 +13,7 @@ BINARY_PATH="$GOPATH/src/github.com/ava-labs/avalanchego/build/plugins/evm"
 if [[ $# -eq 1 ]]; then
     BINARY_PATH=$1
 elif [[ $# -ne 0 ]]; then
-    echo "Invalid arguments to build coreth. Requires either no arguments (default) or one arguments to specify binary location."
+    echo "Invalid arguments to build dcore. Requires either no arguments (default) or one arguments to specify binary location."
     exit 1
 fi
 

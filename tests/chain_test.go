@@ -27,7 +27,7 @@ type testChain struct {
 	hasBlock    map[common.Hash]struct{}
 	blocks      []common.Hash
 	blkCount    uint32
-	chain       *coreth.ETHChain
+	chain       *dcore.ETHChain
 	parentBlock common.Hash
 	outBlockCh  chan<- []byte
 	blockWait   sync.WaitGroup
@@ -48,7 +48,7 @@ func newTestChain(name string, config *eth.Config,
 		hasBlock:   make(map[common.Hash]struct{}),
 		blocks:     make([]common.Hash, 0),
 		blkCount:   0,
-		chain:      coreth.NewETHChain(config, nil, rawdb.NewMemoryDatabase(), eth.DefaultSettings, true, nil),
+		chain:      dcore.NewETHChain(config, nil, rawdb.NewMemoryDatabase(), eth.DefaultSettings, true, nil),
 		outBlockCh: outBlockCh,
 	}
 	tc.insertBlock(tc.chain.GetGenesisBlock())

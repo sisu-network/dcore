@@ -112,7 +112,7 @@ func (v blockValidatorPhase0) SyntacticVerify(b *Block) error {
 		return errUncleHashMismatch
 	}
 	// Coinbase must be zero on C-Chain
-	if b.ethBlock.Coinbase() != coreth.BlackholeAddr {
+	if b.ethBlock.Coinbase() != dcore.BlackholeAddr {
 		return errInvalidBlock
 	}
 	// Block must not have any uncles
@@ -217,7 +217,7 @@ func (blockValidatorPhase1) SyntacticVerify(b *Block) error {
 		return errUncleHashMismatch
 	}
 	// Coinbase must be zero on C-Chain
-	if b.ethBlock.Coinbase() != coreth.BlackholeAddr {
+	if b.ethBlock.Coinbase() != dcore.BlackholeAddr {
 		return errInvalidBlock
 	}
 	// Block must not have any uncles
