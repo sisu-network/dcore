@@ -62,10 +62,6 @@ import (
 // Deprecated: use ethconfig.Config instead.
 type Config = ethconfig.Config
 
-type BackendCallbacks struct {
-	OnQueryAcceptedBlock func() *types.Block
-}
-
 var (
 	DefaultSettings Settings = Settings{MaxBlocksPerRequest: 2000}
 )
@@ -114,6 +110,7 @@ type Ethereum struct {
 func New(stack *node.Node, config *Config,
 	cb *dummy.ConsensusCallbacks,
 	mcb *miner.MinerCallbacks,
+	backendCb *types.BackendAPICallback,
 	chainDb ethdb.Database,
 	settings Settings,
 	initGenesis bool,
@@ -234,7 +231,7 @@ func New(stack *node.Node, config *Config,
 	// FIXME use node config to pass in config param on whether or not to allow unprotected
 	// currently defaults to false.
 	allowUnprotectedTxs := false
-	eth.APIBackend = &EthAPIBackend{stack.Config().ExtRPCEnabled(), false, eth, nil}
+	eth.APIBackend = &EthAPIBackend{stack.Config().ExtRPCEnabled(), false, eth, nil, backendCb}
 	if allowUnprotectedTxs {
 		log.Info("Unprotected transactions allowed")
 	}
