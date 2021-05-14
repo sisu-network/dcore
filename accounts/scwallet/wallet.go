@@ -43,13 +43,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ava-labs/coreth/accounts"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/interfaces"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	pcsc "github.com/gballet/go-libpcsclite"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/interfaces"
 	"github.com/status-im/keycard-go/derivationpath"
 )
 

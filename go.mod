@@ -1,4 +1,4 @@
-module github.com/ava-labs/coreth
+module github.com/sisu-network/dcore
 
 go 1.15
 

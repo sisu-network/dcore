@@ -8,15 +8,15 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ava-labs/coreth/accounts/keystore"
-	"github.com/ava-labs/coreth/core"
-	"github.com/ava-labs/coreth/core/rawdb"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/eth"
-	"github.com/ava-labs/coreth/eth/ethconfig"
-	"github.com/ava-labs/coreth/params"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/sisu-network/dcore/accounts/keystore"
+	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/eth"
+	"github.com/sisu-network/dcore/eth/ethconfig"
+	"github.com/sisu-network/dcore/params"
 )
 
 var (

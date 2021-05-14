@@ -33,10 +33,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ava-labs/coreth/core/state"
-	"github.com/ava-labs/coreth/core/vm"
-	"github.com/ava-labs/coreth/params"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 )
 
 type account struct{}

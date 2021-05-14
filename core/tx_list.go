@@ -32,8 +32,8 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // nonceHeap is a heap.Interface implementation over 64bit unsigned integers for

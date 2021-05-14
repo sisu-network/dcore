@@ -35,11 +35,11 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/interfaces"
-	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/interfaces"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
