@@ -29,7 +29,7 @@ package core
 import (
 	"runtime"
 
-	"github.com/sisu-network/dcore/core/types"
+	"github.com/ava-labs/coreth/core/types"
 )
 
 // senderCacher is a concurrent transaction sender recoverer and cacher.

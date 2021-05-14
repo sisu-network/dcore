@@ -34,12 +34,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ava-labs/coreth/core/rawdb"
+	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/sisu-network/dcore/core/rawdb"
-	"github.com/sisu-network/dcore/core/types"
 )
 
 // ChainIndexerBackend defines the methods needed to process chain segments in
@@ -104,7 +104,7 @@ type ChainIndexer struct {
 	throttling time.Duration // Disk throttling to prevent a heavy upgrade from hogging resources
 
 	log  log.Logger
-	lock sync.RWMutex
+	lock sync.Mutex
 }
 
 // NewChainIndexer creates a new chain indexer to do background processing on

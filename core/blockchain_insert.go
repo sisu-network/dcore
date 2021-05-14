@@ -29,10 +29,10 @@ package core
 import (
 	"time"
 
+	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/sisu-network/dcore/core/types"
 )
 
 // insertStats tracks and reports on block insertion.
@@ -53,7 +53,7 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 	// Fetch the timings for the batch
 	var (
 		now     = mclock.Now()
-		elapsed = time.Duration(now) - time.Duration(st.startTime)
+		elapsed = now.Sub(st.startTime)
 	)
 	// If we're at the last block of the batch or report period reached, log
 	if index == len(chain)-1 || elapsed >= statsReportLimit {

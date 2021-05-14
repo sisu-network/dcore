@@ -1,37 +1,32 @@
-x ./consensus/dummy/consensus.go
-x ./consensus/clique/clique.go
-x ./consensus/consensus.go
-x ./consensus/ethash/consensus.go
+./consensus/dummy/consensus.go
+./consensus/consensus.go
 ./core/blockchain.go
-x ./core/events.go
-x ./core/evm.go
-x ./core/genesis.go
-x ./core/gen_genesis_account.go
-x ./core/gen_genesis.go
-x ./core/rawdb/accessors_chain.go
-x ./core/state/journal.go
-x ./core/state_processor.go
-x ./core/state/statedb.go
-x ./core/state/state_object.go
-x ./core/tx_pool.go
-x ./core/types/block.go
-x ./core/vm/eips.go
-x ./core/vm/errors.go
-x ./core/vm/evm.go
-x ./core/vm/gas_table.go
-x ./core/vm/instructions.go
-x ./core/vm/interface.go
-x ./core/vm/interpreter.go
-x ./core/vm/jump_table.go
-x ./core/vm/memory_table.go
-x ./core/vm/opcodes.go
-x ./eth/api_backend.go
-x ./eth/api.go
+./core/events.go
+./core/evm.go
+./core/genesis.go
+./core/gen_genesis_account.go
+./core/gen_genesis.go
+./core/rawdb/accessors_chain.go
+./core/state/journal.go
+./core/state_processor.go
+./core/state/statedb.go
+./core/state/state_object.go
+./core/tx_pool.go
+./core/types/block.go
+./core/vm/errors.go
+./core/vm/evm.go
+./core/vm/instructions.go
+./core/vm/interface.go
+./core/vm/interpreter.go
+./core/vm/jump_table.go
+./core/vm/memory_table.go
+./core/vm/opcodes.go
+./eth/api_backend.go
+./eth/api.go
 ./eth/api_tracer.go
-x ./eth/backend.go
+./eth/backend.go
 ./eth/config.go
 ./eth/gasprice/gasprice.go
-./eth/gen_config.go
 ./eth/tracers/internal/tracers/assets.go
 ./ethclient/ethclient.go
 ./ethclient/signer.go
@@ -43,8 +38,9 @@ x ./eth/backend.go
 ./node/config.go
 ./node/node.go
 ./node/service.go
+./params/config.go
 ./params/protocol_params.go
 ./rpc/client.go
 ./rpc/types.go
-./interfaces.go
+./interfaces.go (moved to interfaces/interfaces.go)
 ./accounts/keystore/account_cache.go (minor formatting change to pass linting)
