@@ -75,7 +75,7 @@ func NewDefaultChain(t *testing.T) (*ETHChain, chan *types.Block, chan core.NewT
 		Alloc:      core.GenesisAlloc{fundedKey.Address: {Balance: initialBalance}},
 	}
 
-	chain := NewETHChain(&config, nil, rawdb.NewMemoryDatabase(), eth.DefaultSettings, true)
+	chain := NewETHChain(&config, nil, rawdb.NewMemoryDatabase(), eth.DefaultSettings, true, nil)
 
 	if err := chain.Accept(chain.GetGenesisBlock()); err != nil {
 		t.Fatal(err)

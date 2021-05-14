@@ -34,13 +34,14 @@ type Block = types.Block
 type Hash = common.Hash
 
 type ETHChain struct {
-	backend *eth.Ethereum
-	cb      *dummy.ConsensusCallbacks
-	mcb     *miner.MinerCallbacks
+	backend   *eth.Ethereum
+	cb        *dummy.ConsensusCallbacks
+	mcb       *miner.MinerCallbacks
+	backendCb *types.BackendAPICallback
 }
 
 // NewETHChain creates an Ethereum blockchain with the given configs.
-func NewETHChain(config *eth.Config, nodecfg *node.Config, chainDB ethdb.Database, settings eth.Settings, initGenesis bool) *ETHChain {
+func NewETHChain(config *eth.Config, nodecfg *node.Config, chainDB ethdb.Database, settings eth.Settings, initGenesis bool, onTxSubmitted func(*types.Transaction)) *ETHChain {
 	if config == nil {
 		config = &ethconfig.DefaultConfig
 	}
@@ -57,7 +58,10 @@ func NewETHChain(config *eth.Config, nodecfg *node.Config, chainDB ethdb.Databas
 	//}
 	cb := new(dummy.ConsensusCallbacks)
 	mcb := new(miner.MinerCallbacks)
-	backend, err := eth.New(node, config, cb, mcb, chainDB, settings, initGenesis)
+	backendCb := new(types.BackendAPICallback)
+	backendCb.OnTxSubmitted = onTxSubmitted
+
+	backend, err := eth.New(node, config, cb, mcb, backendCb, chainDB, settings, initGenesis)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create new eth backend due to %s", err))
 	}

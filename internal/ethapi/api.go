@@ -1751,9 +1751,24 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		// Ensure only eip155 signed transactions are submitted if EIP155Required is set.
 		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed over RPC")
 	}
-	if err := b.SendTx(ctx, tx); err != nil {
-		return common.Hash{}, err
+
+	// Original Code
+	// if err := b.SendTx(ctx, tx); err != nil {
+	// 	return common.Hash{}, err
+	// }
+
+	// Make a callback when a new TX is submitted
+	cb := b.GetBackendAPICallback()
+	if cb.OnTxSubmitted != nil {
+		// We don't send it to ETH tx pool. Instead, make a callback so that it could be sent to
+		// Tendermint mem pool.
+		cb.OnTxSubmitted(tx)
+	} else {
+		if err := b.SendTx(ctx, tx); err != nil {
+			return common.Hash{}, err
+		}
 	}
+
 	// Print a log with full tx details for manual investigations and interventions
 	currentBlock := b.CurrentBlock()
 	signer := types.MakeSigner(b.ChainConfig(), currentBlock.Number(), new(big.Int).SetUint64(currentBlock.Time()))
@@ -1768,6 +1783,7 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	} else {
 		log.Info("Submitted transaction", "hash", tx.Hash().Hex(), "from", from, "nonce", tx.Nonce(), "recipient", tx.To(), "value", tx.Value())
 	}
+
 	return tx.Hash(), nil
 }
 
