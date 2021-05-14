@@ -37,10 +37,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ava-labs/coreth/accounts"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/sisu-network/dcore/accounts"
 )
 
 // Minimum amount of time between cache reloads. This limit applies if the platform does
@@ -272,7 +272,7 @@ func (ac *accountCache) scanAccounts() error {
 		switch {
 		case err != nil:
 			log.Debug("Failed to decode keystore key", "path", path, "err", err)
-		case (addr == common.Address{}):
+		case addr == common.Address{}:
 			log.Debug("Failed to decode keystore key", "path", path, "err", "missing or zero address")
 		default:
 			return &accounts.Account{

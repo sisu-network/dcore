@@ -27,14 +27,15 @@
 package core
 
 import (
+	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/sisu-network/dcore/core/types"
 )
 
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
 type NewTxsEvent struct{ Txs []*types.Transaction }
 
 // NewTxPoolHeadEvent is posted when the pool head is updated.
+// TODO: remove unnecessary event
 type NewTxPoolHeadEvent struct{ Block *types.Block }
 
 // NewMinedBlockEvent is posted when a block has been imported.

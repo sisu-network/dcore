@@ -6,11 +6,11 @@ package evm
 import (
 	"fmt"
 
+	coreth "github.com/ava-labs/coreth/chain"
+	"github.com/ava-labs/coreth/core/types"
+	"github.com/ava-labs/coreth/params"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/sisu-network/dcore"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/params"
 )
 
 var (
@@ -112,7 +112,7 @@ func (v blockValidatorPhase0) SyntacticVerify(b *Block) error {
 		return errUncleHashMismatch
 	}
 	// Coinbase must be zero on C-Chain
-	if b.ethBlock.Coinbase() != dcore.BlackholeAddr {
+	if b.ethBlock.Coinbase() != coreth.BlackholeAddr {
 		return errInvalidBlock
 	}
 	// Block must not have any uncles
@@ -217,7 +217,7 @@ func (blockValidatorPhase1) SyntacticVerify(b *Block) error {
 		return errUncleHashMismatch
 	}
 	// Coinbase must be zero on C-Chain
-	if b.ethBlock.Coinbase() != dcore.BlackholeAddr {
+	if b.ethBlock.Coinbase() != coreth.BlackholeAddr {
 		return errInvalidBlock
 	}
 	// Block must not have any uncles

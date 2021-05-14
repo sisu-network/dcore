@@ -32,15 +32,15 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/sisu-network/dcore/core/vm"
+	"github.com/ava-labs/coreth/core/vm"
 
+	"github.com/ava-labs/coreth/core"
+	"github.com/ava-labs/coreth/core/bloombits"
+	"github.com/ava-labs/coreth/core/types"
+	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/bloombits"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/rpc"
 )
 
 type Backend interface {
@@ -58,6 +58,8 @@ type Backend interface {
 	SubscribeAcceptedLogsEvent(ch chan<- []*types.Log) event.Subscription
 
 	SubscribePendingLogsEvent(ch chan<- []*types.Log) event.Subscription
+
+	SubscribeAcceptedTransactionEvent(ch chan<- core.NewTxsEvent) event.Subscription
 
 	BloomStatus() (uint64, uint64)
 	ServiceFilter(ctx context.Context, session *bloombits.MatcherSession)

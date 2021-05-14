@@ -13,7 +13,7 @@ BINARY_PATH="$GOPATH/src/github.com/ava-labs/avalanchego/build/plugins/evm"
 if [[ $# -eq 1 ]]; then
     BINARY_PATH=$1
 elif [[ $# -ne 0 ]]; then
-    echo "Invalid arguments to build dcore. Requires either no arguments (default) or one arguments to specify binary location."
+    echo "Invalid arguments to build coreth. Requires either no arguments (default) or one arguments to specify binary location."
     exit 1
 fi
 
@@ -24,4 +24,4 @@ CORETH_COMMIT=${CORETH_COMMIT:-$( git rev-list -1 HEAD )}
 
 # Build Coreth, which is run as a subprocess
 echo "Building Coreth from GitCommit: $CORETH_COMMIT"
-go build -ldflags "-X github.com/sisu-network/dcore/plugin/evm.GitCommit=$CORETH_COMMIT" -o "$BINARY_PATH" "plugin/"*.go
+go build -ldflags "-X github.com/ava-labs/coreth/plugin/evm.GitCommit=$CORETH_COMMIT" -o "$BINARY_PATH" "plugin/"*.go

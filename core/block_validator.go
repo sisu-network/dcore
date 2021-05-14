@@ -29,11 +29,11 @@ package core
 import (
 	"fmt"
 
+	"github.com/ava-labs/coreth/consensus"
+	"github.com/ava-labs/coreth/core/state"
+	"github.com/ava-labs/coreth/core/types"
+	"github.com/ava-labs/coreth/params"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/sisu-network/dcore/consensus"
-	"github.com/sisu-network/dcore/core/state"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/params"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and
@@ -72,7 +72,7 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	if hash := types.CalcUncleHash(block.Uncles()); hash != header.UncleHash {
 		return fmt.Errorf("uncle root hash mismatch: have %x, want %x", hash, header.UncleHash)
 	}
-	if hash := types.DeriveSha(block.Transactions(), new(trie.Trie)); hash != header.TxHash {
+	if hash := types.DeriveSha(block.Transactions(), trie.NewStackTrie(nil)); hash != header.TxHash {
 		return fmt.Errorf("transaction root hash mismatch: have %x, want %x", hash, header.TxHash)
 	}
 	if !v.bc.HasBlockAndState(block.ParentHash(), block.NumberU64()-1) {
@@ -99,8 +99,8 @@ func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateD
 	if rbloom != header.Bloom {
 		return fmt.Errorf("invalid bloom (remote: %x  local: %x)", header.Bloom, rbloom)
 	}
-	// Tre receipt Trie's root (R = (Tr [[H1, R1], ... [Hn, R1]]))
-	receiptSha := types.DeriveSha(receipts, new(trie.Trie))
+	// Tre receipt Trie's root (R = (Tr [[H1, R1], ... [Hn, Rn]]))
+	receiptSha := types.DeriveSha(receipts, trie.NewStackTrie(nil))
 	if receiptSha != header.ReceiptHash {
 		return fmt.Errorf("invalid receipt root hash (remote: %x local: %x)", header.ReceiptHash, receiptSha)
 	}

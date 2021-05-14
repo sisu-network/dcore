@@ -31,19 +31,19 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ava-labs/coreth/accounts"
+	"github.com/ava-labs/coreth/consensus"
+	"github.com/ava-labs/coreth/core"
+	"github.com/ava-labs/coreth/core/bloombits"
+	"github.com/ava-labs/coreth/core/state"
+	"github.com/ava-labs/coreth/core/types"
+	"github.com/ava-labs/coreth/core/vm"
+	"github.com/ava-labs/coreth/params"
+	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/sisu-network/dcore/accounts"
-	"github.com/sisu-network/dcore/consensus"
-	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/bloombits"
-	"github.com/sisu-network/dcore/core/state"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/core/vm"
-	"github.com/sisu-network/dcore/params"
-	"github.com/sisu-network/dcore/rpc"
 )
 
 // Backend interface provides the common API services (that are provided by
@@ -51,13 +51,13 @@ import (
 type Backend interface {
 	// General Ethereum API
 	Downloader() *downloader.Downloader
-	ProtocolVersion() int
 	SuggestPrice(ctx context.Context) (*big.Int, error)
 	ChainDb() ethdb.Database
 	AccountManager() *accounts.Manager
 	ExtRPCEnabled() bool
-	RPCGasCap() uint64    // global gas cap for eth_call over rpc: DoS protection
-	RPCTxFeeCap() float64 // global tx fee cap for all transaction related APIs
+	RPCGasCap() uint64        // global gas cap for eth_call over rpc: DoS protection
+	RPCTxFeeCap() float64     // global tx fee cap for all transaction related APIs
+	UnprotectedAllowed() bool // allows only for EIP155 transactions.
 
 	// Blockchain API
 	// SetHead(number uint64)
@@ -73,7 +73,7 @@ type Backend interface {
 	StateAndHeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*state.StateDB, *types.Header, error)
 	GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error)
 	GetTd(ctx context.Context, hash common.Hash) *big.Int
-	GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header) (*vm.EVM, func() error, error)
+	GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmConfig *vm.Config) (*vm.EVM, func() error, error)
 	SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription
 	SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription
 	SubscribeChainSideEvent(ch chan<- core.ChainSideEvent) event.Subscription
@@ -87,7 +87,6 @@ type Backend interface {
 	Stats() (pending int, queued int)
 	TxPoolContent() (map[common.Address]types.Transactions, map[common.Address]types.Transactions)
 	SubscribeNewTxsEvent(chan<- core.NewTxsEvent) event.Subscription
-	GetBackendAPICallback() *types.BackendAPICallback
 
 	// Filter API
 	BloomStatus() (uint64, uint64)

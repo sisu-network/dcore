@@ -32,12 +32,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sisu-network/dcore/accounts"
-	"github.com/sisu-network/dcore/accounts/external"
-	"github.com/sisu-network/dcore/accounts/keystore"
+	"github.com/ava-labs/coreth/accounts"
+	"github.com/ava-labs/coreth/accounts/external"
+	"github.com/ava-labs/coreth/accounts/keystore"
 
+	"github.com/ava-labs/coreth/rpc"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/sisu-network/dcore/rpc"
 )
 
 // Original code:
@@ -183,7 +183,7 @@ type Config struct {
 
 	// staticNodesWarning     bool
 	// trustedNodesWarning    bool
-	//  oldGethResourceWarning bool
+	// oldGethResourceWarning bool
 
 	CorethVersion string
 }

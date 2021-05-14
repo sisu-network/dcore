@@ -27,7 +27,7 @@
 package node
 
 import (
-	"github.com/sisu-network/dcore/rpc"
+	"github.com/ava-labs/coreth/rpc"
 )
 
 const (
