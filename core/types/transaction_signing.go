@@ -60,6 +60,10 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int, blockTime *big
 	}
 }
 
+func MakeEIP155Signer(config *params.ChainConfig) Signer {
+	return NewEIP155Signer(config.ChainID)
+}
+
 // LatestSigner returns the 'most permissive' Signer available for the given chain
 // configuration. Specifically, this enables support of EIP-155 replay protection and
 // EIP-2930 access list transactions when their respective forks are scheduled to occur at
