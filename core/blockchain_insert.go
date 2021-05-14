@@ -29,10 +29,10 @@ package core
 import (
 	"time"
 
-	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // insertStats tracks and reports on block insertion.

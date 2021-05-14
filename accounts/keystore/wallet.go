@@ -29,10 +29,10 @@ package keystore
 import (
 	"math/big"
 
-	"github.com/ava-labs/coreth/accounts"
-	"github.com/ava-labs/coreth/core/types"
-	"github.com/ava-labs/coreth/interfaces"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/sisu-network/dcore/accounts"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/interfaces"
 )
 
 // keystoreWallet implements the accounts.Wallet interface for the original

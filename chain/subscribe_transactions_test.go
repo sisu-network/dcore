@@ -4,10 +4,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ava-labs/coreth/eth/filters"
+	"github.com/sisu-network/dcore/eth/filters"
 
-	"github.com/ava-labs/coreth/core/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 func TestSubscribeTransactionsTest(t *testing.T) {

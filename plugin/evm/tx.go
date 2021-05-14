@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/ava-labs/coreth/core/state"
-	"github.com/ava-labs/coreth/params"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/params"
 
 	"github.com/ava-labs/avalanchego/codec"
 	"github.com/ava-labs/avalanchego/database"
