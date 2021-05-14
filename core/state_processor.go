@@ -155,7 +155,7 @@ func applyTransaction(msg types.Message, config *params.ChainConfig, bc ChainCon
 //
 // In dcore, the header is not needed anymore since we will always use EIP155Signer
 func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *uint64, cfg vm.Config) (*types.Receipt, error) {
-	msg, err := tx.AsMessage(types.MakeEIP155Signer(config))
+	msg, err := tx.AsMessage(types.NewEIP2930Signer(config.ChainID))
 	if err != nil {
 		return nil, err
 	}
