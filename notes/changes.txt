@@ -1,0 +1,15 @@
+1) Add API backend callback:
+- https://github.com/sisu-network/dcore/commit/15c36ab1b54456f229e75e4189d1cb77cf9471ac
+2) Disable gas price:
+- https://github.com/sisu-network/dcore/commit/02bd543118948e4e1c787a11a27c07f5baf7ef07
+
+3) Add EVM API & Net API && Web3 API:
+- https://github.com/sisu-network/dcore/commit/cc8dfbefe12cd50cbda071b0cd6ac32944dbd5d7
+- https://github.com/sisu-network/dcore/commit/770f1d343834074a5dd57fcacb20f05f1cdd79c8
+- https://github.com/sisu-network/dcore/commit/65e027b25f3c00b7783012885be2d7bc06d57007
+
+4) Don't use initGenesis to load initial state:
+- https://github.com/sisu-network/dcore/commit/178ec0470d3ed047ba8862792bd0935bc2a1e051
+
+5) Use MakeEIP155Signer:
+- https://github.com/sisu-network/dcore/commit/c97bd36cd9c559dfd7505babc6e75087b6a361cc
