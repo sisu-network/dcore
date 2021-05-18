@@ -1125,12 +1125,14 @@ func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 	return new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
 }
 
-func (w *worker) CommitTransaction(addr common.Address, tx types.Transactions) {
+func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	txMap := make(map[common.Address]types.Transactions)
-	txMap[addr] = tx
+	txArray := make(types.Transactions, 1)
+	txArray[0] = tx
+	txMap[addr] = txArray
 
 	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, txMap)
 	interrupt := commitInterruptNone
