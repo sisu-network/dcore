@@ -14,3 +14,4 @@
 5) Use NewEIP2930Signer:
 6) Execute TX immediately:
 - https://github.com/sisu-network/dcore/commit/2f2026c8ad4bb2294ec96dbea094624b4142fe43
+7) Intermediate root hash.
