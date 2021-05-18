@@ -232,3 +232,7 @@ func (miner *Miner) GenBlock() {
 func (miner *Miner) GetWorkerMux() *event.TypeMux {
 	return miner.worker.mux
 }
+
+func (miner *Miner) ExecuteTx(from common.Address, tx types.Transactions) {
+	miner.worker.CommitTransaction(from, tx)
+}
