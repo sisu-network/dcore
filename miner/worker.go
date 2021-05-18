@@ -267,9 +267,9 @@ func (w *worker) setEtherbase(addr common.Address) {
 // Original Code:
 // // setExtra sets the content used to initialize the block extra field.
 // func (w *worker) setExtra(extra []byte) {
-// 	w.mu.Lock()
-// 	defer w.mu.Unlock()
-// 	w.extra = extra
+//  w.mu.Lock()
+//  defer w.mu.Unlock()
+//  w.extra = extra
 // }
 
 // setRecommitInterval updates the interval for miner sealing work recommitting.
@@ -290,21 +290,21 @@ func (w *worker) enablePreseal() {
 // Original code:
 // // pending returns the pending state and corresponding block.
 // func (w *worker) pending() (*types.Block, *state.StateDB) {
-// 	// return a snapshot to avoid contention on currentMu mutex
-// 	w.snapshotMu.RLock()
-// 	defer w.snapshotMu.RUnlock()
-// 	if w.snapshotState == nil {
-// 		return nil, nil
-// 	}
-// 	return w.snapshotBlock, w.snapshotState.Copy()
+//  // return a snapshot to avoid contention on currentMu mutex
+//  w.snapshotMu.RLock()
+//  defer w.snapshotMu.RUnlock()
+//  if w.snapshotState == nil {
+//    return nil, nil
+//  }
+//  return w.snapshotBlock, w.snapshotState.Copy()
 // }
 //
 // // pendingBlock returns pending block.
 // func (w *worker) pendingBlock() *types.Block {
-// 	// return a snapshot to avoid contention on currentMu mutex
-// 	w.snapshotMu.RLock()
-// 	defer w.snapshotMu.RUnlock()
-// 	return w.snapshotBlock
+//  // return a snapshot to avoid contention on currentMu mutex
+//  w.snapshotMu.RLock()
+//  defer w.snapshotMu.RUnlock()
+//  return w.snapshotBlock
 // }
 
 // start sets the running status as 1 and triggers new work submitting.
@@ -487,43 +487,43 @@ func (w *worker) mainLoop() {
 			w.commitNewWork(req.interrupt, req.noempty, req.timestamp)
 		// Original code:
 		// case ev := <-w.chainSideCh:
-		// 	// Short circuit for duplicate side blocks
-		// 	if _, exist := w.localUncles[ev.Block.Hash()]; exist {
-		// 		continue
-		// 	}
-		// 	if _, exist := w.remoteUncles[ev.Block.Hash()]; exist {
-		// 		continue
-		// 	}
-		// 	// Add side block to possible uncle block set depending on the author.
-		// 	if w.isLocalBlock != nil && w.isLocalBlock(ev.Block) {
-		// 		w.localUncles[ev.Block.Hash()] = ev.Block
-		// 	} else {
-		// 		w.remoteUncles[ev.Block.Hash()] = ev.Block
-		// 	}
-		// 	// If our mining block contains less than 2 uncle blocks,
-		// 	// add the new uncle block if valid and regenerate a mining block.
-		// 	if w.isRunning() && w.current != nil && w.current.uncles.Cardinality() < 2 {
-		// 		start := time.Now()
-		// 		if err := w.commitUncle(w.current, ev.Block.Header()); err == nil {
-		// 			var uncles []*types.Header
-		// 			w.current.uncles.Each(func(item interface{}) bool {
-		// 				hash, ok := item.(common.Hash)
-		// 				if !ok {
-		// 					return false
-		// 				}
-		// 				uncle, exist := w.localUncles[hash]
-		// 				if !exist {
-		// 					uncle, exist = w.remoteUncles[hash]
-		// 				}
-		// 				if !exist {
-		// 					return false
-		// 				}
-		// 				uncles = append(uncles, uncle.Header())
-		// 				return false
-		// 			})
-		// 			w.commit(uncles, nil, true, start)
-		// 		}
-		// 	}
+		//  // Short circuit for duplicate side blocks
+		//  if _, exist := w.localUncles[ev.Block.Hash()]; exist {
+		//    continue
+		//  }
+		//  if _, exist := w.remoteUncles[ev.Block.Hash()]; exist {
+		//    continue
+		//  }
+		//  // Add side block to possible uncle block set depending on the author.
+		//  if w.isLocalBlock != nil && w.isLocalBlock(ev.Block) {
+		//    w.localUncles[ev.Block.Hash()] = ev.Block
+		//  } else {
+		//    w.remoteUncles[ev.Block.Hash()] = ev.Block
+		//  }
+		//  // If our mining block contains less than 2 uncle blocks,
+		//  // add the new uncle block if valid and regenerate a mining block.
+		//  if w.isRunning() && w.current != nil && w.current.uncles.Cardinality() < 2 {
+		//    start := time.Now()
+		//    if err := w.commitUncle(w.current, ev.Block.Header()); err == nil {
+		//      var uncles []*types.Header
+		//      w.current.uncles.Each(func(item interface{}) bool {
+		//        hash, ok := item.(common.Hash)
+		//        if !ok {
+		//          return false
+		//        }
+		//        uncle, exist := w.localUncles[hash]
+		//        if !exist {
+		//          uncle, exist = w.remoteUncles[hash]
+		//        }
+		//        if !exist {
+		//          return false
+		//        }
+		//        uncles = append(uncles, uncle.Header())
+		//        return false
+		//      })
+		//      w.commit(uncles, nil, true, start)
+		//    }
+		//  }
 		case <-w.chainSideCh:
 			// Remove blocks from chainSideCh to prevent backup on channel.
 		case ev := <-w.txsCh:
@@ -553,17 +553,17 @@ func (w *worker) mainLoop() {
 				// // Only update the snapshot if any new transactons were added
 				// // to the pending block
 				// if tcount != w.current.tcount {
-				// 	w.updateSnapshot()
+				//  w.updateSnapshot()
 				// }
 			}
 			// Original code:
 			// } else {
-			// 	// Special case, if the consensus engine is 0 period clique(dev mode),
-			// 	// submit mining work here since all empty submission will be rejected
-			// 	// by clique. Of course the advance sealing(empty submission) is disabled.
-			// 	if w.chainConfig.Clique != nil && w.chainConfig.Clique.Period == 0 {
-			// 		w.commitNewWork(nil, true, time.Now().Unix())
-			// 	}
+			//  // Special case, if the consensus engine is 0 period clique(dev mode),
+			//  // submit mining work here since all empty submission will be rejected
+			//  // by clique. Of course the advance sealing(empty submission) is disabled.
+			//  if w.chainConfig.Clique != nil && w.chainConfig.Clique.Period == 0 {
+			//    w.commitNewWork(nil, true, time.Now().Unix())
+			//  }
 			// }
 			atomic.AddInt32(&w.newTxs, int32(len(ev.Txs)))
 
@@ -726,11 +726,11 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 	// Original code:
 	// // when 08 is processed ancestors contain 07 (quick block)
 	// for _, ancestor := range w.chain.GetBlocksFromHash(parent.Hash(), 7) {
-	// 	for _, uncle := range ancestor.Uncles() {
-	// 		env.family.Add(uncle.Hash())
-	// 	}
-	// 	env.family.Add(ancestor.Hash())
-	// 	env.ancestors.Add(ancestor.Hash())
+	//  for _, uncle := range ancestor.Uncles() {
+	//    env.family.Add(uncle.Hash())
+	//  }
+	//  env.family.Add(ancestor.Hash())
+	//  env.ancestors.Add(ancestor.Hash())
 	// }
 
 	// Keep track of transactions which return errors so they can be removed
@@ -748,54 +748,54 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 // Original code:
 // // commitUncle adds the given block to uncle block set, returns error if failed to add.
 // func (w *worker) commitUncle(env *environment, uncle *types.Header) error {
-// 	hash := uncle.Hash()
-// 	if env.uncles.Contains(hash) {
-// 		return errors.New("uncle not unique")
-// 	}
-// 	if env.header.ParentHash == uncle.ParentHash {
-// 		return errors.New("uncle is sibling")
-// 	}
-// 	if !env.ancestors.Contains(uncle.ParentHash) {
-// 		return errors.New("uncle's parent unknown")
-// 	}
-// 	if env.family.Contains(hash) {
-// 		return errors.New("uncle already included")
-// 	}
-// 	env.uncles.Add(uncle.Hash())
-// 	return nil
+//  hash := uncle.Hash()
+//  if env.uncles.Contains(hash) {
+//    return errors.New("uncle not unique")
+//  }
+//  if env.header.ParentHash == uncle.ParentHash {
+//    return errors.New("uncle is sibling")
+//  }
+//  if !env.ancestors.Contains(uncle.ParentHash) {
+//    return errors.New("uncle's parent unknown")
+//  }
+//  if env.family.Contains(hash) {
+//    return errors.New("uncle already included")
+//  }
+//  env.uncles.Add(uncle.Hash())
+//  return nil
 // }
 //
 // // updateSnapshot updates pending snapshot block and state.
 // // Note this function assumes the current variable is thread safe.
 // func (w *worker) updateSnapshot() {
-// 	w.snapshotMu.Lock()
-// 	defer w.snapshotMu.Unlock()
+//  w.snapshotMu.Lock()
+//  defer w.snapshotMu.Unlock()
 //
-// 	var uncles []*types.Header
-// 	w.current.uncles.Each(func(item interface{}) bool {
-// 		hash, ok := item.(common.Hash)
-// 		if !ok {
-// 			return false
-// 		}
-// 		uncle, exist := w.localUncles[hash]
-// 		if !exist {
-// 			uncle, exist = w.remoteUncles[hash]
-// 		}
-// 		if !exist {
-// 			return false
-// 		}
-// 		uncles = append(uncles, uncle.Header())
-// 		return false
-// 	})
+//  var uncles []*types.Header
+//  w.current.uncles.Each(func(item interface{}) bool {
+//    hash, ok := item.(common.Hash)
+//    if !ok {
+//      return false
+//    }
+//    uncle, exist := w.localUncles[hash]
+//    if !exist {
+//      uncle, exist = w.remoteUncles[hash]
+//    }
+//    if !exist {
+//      return false
+//    }
+//    uncles = append(uncles, uncle.Header())
+//    return false
+//  })
 //
-// 	w.snapshotBlock = types.NewBlock(
-// 		w.current.header,
-// 		w.current.txs,
-// 		uncles,
-// 		w.current.receipts,
-// 		trie.NewStackTrie(nil),
-// 	)
-// 	w.snapshotState = w.current.state.Copy()
+//  w.snapshotBlock = types.NewBlock(
+//    w.current.header,
+//    w.current.txs,
+//    uncles,
+//    w.current.receipts,
+//    trie.NewStackTrie(nil),
+//  )
+//  w.snapshotState = w.current.state.Copy()
 // }
 
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error) {
@@ -936,84 +936,88 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	defer w.mu.RUnlock()
 
 	tstart := time.Now()
-	parent := w.chain.CurrentBlock()
-	if parent.Time() >= uint64(timestamp) {
-		//timestamp = int64(parent.Time() + 1)
-		timestamp = int64(parent.Time())
-	}
+	///////////////
+	// parent := w.chain.CurrentBlock()
+	// if parent.Time() >= uint64(timestamp) {
+	//  //timestamp = int64(parent.Time() + 1)
+	//  timestamp = int64(parent.Time())
+	// }
 
-	var gasLimit uint64
-	if w.chainConfig.IsApricotPhase1(big.NewInt(timestamp)) {
-		gasLimit = w.config.ApricotPhase1GasLimit
-	} else {
-		gasLimit = core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
-	}
-	num := parent.Number()
-	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     num.Add(num, common.Big1),
-		GasLimit:   gasLimit,
-		Extra:      nil,
-		Time:       uint64(timestamp),
-	}
-	// Only set the coinbase if our consensus engine is running (avoid spurious block rewards)
-	if w.isRunning() {
-		if w.coinbase == (common.Address{}) {
-			log.Error("Refusing to mine without etherbase")
-			return
-		}
-		header.Coinbase = w.coinbase
-	}
-	if err := w.engine.Prepare(w.chain, header); err != nil {
-		log.Error("Failed to prepare header for mining", "err", err)
-		return
-	}
+	// var gasLimit uint64
+	// if w.chainConfig.IsApricotPhase1(big.NewInt(timestamp)) {
+	//  gasLimit = w.config.ApricotPhase1GasLimit
+	// } else {
+	//  gasLimit = core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
+	// }
+	// num := parent.Number()
+	// header := &types.Header{
+	//  ParentHash: parent.Hash(),
+	//  Number:     num.Add(num, common.Big1),
+	//  GasLimit:   gasLimit,
+	//  Extra:      nil,
+	//  Time:       uint64(timestamp),
+	// }
+	// // Only set the coinbase if our consensus engine is running (avoid spurious block rewards)
+	// if w.isRunning() {
+	//  if w.coinbase == (common.Address{}) {
+	//    log.Error("Refusing to mine without etherbase")
+	//    return
+	//  }
+	//  header.Coinbase = w.coinbase
+	// }
+	// if err := w.engine.Prepare(w.chain, header); err != nil {
+	//  log.Error("Failed to prepare header for mining", "err", err)
+	//  return
+	// }
+	///////////////
 	// Original code:
 	// // If we are care about TheDAO hard-fork check whether to override the extra-data or not
 	// if daoBlock := w.chainConfig.DAOForkBlock; daoBlock != nil {
-	// 	// Check whether the block is among the fork extra-override range
-	// 	limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
-	// 	if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
-	// 		// Depending whether we support or oppose the fork, override differently
-	// 		if w.chainConfig.DAOForkSupport {
-	// 			header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
-	// 		} else if bytes.Equal(header.Extra, params.DAOForkBlockExtra) {
-	// 			header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
-	// 		}
-	// 	}
+	//  // Check whether the block is among the fork extra-override range
+	//  limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
+	//  if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
+	//    // Depending whether we support or oppose the fork, override differently
+	//    if w.chainConfig.DAOForkSupport {
+	//      header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
+	//    } else if bytes.Equal(header.Extra, params.DAOForkBlockExtra) {
+	//      header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
+	//    }
+	//  }
 	// }
 	// Could potentially happen if starting to mine in an odd state.
-	err := w.makeCurrent(parent, header)
-	if err != nil {
-		log.Error("Failed to create mining context", "err", err)
-		return
-	}
-	// Create the current work task and check any fork transitions needed
-	env := w.current
-	if w.chainConfig.DAOForkSupport && w.chainConfig.DAOForkBlock != nil && w.chainConfig.DAOForkBlock.Cmp(header.Number) == 0 {
-		misc.ApplyDAOHardFork(env.state)
-	}
+	///////////////
+	// err := w.makeCurrent(parent, header)
+	// if err != nil {
+	//  log.Error("Failed to create mining context", "err", err)
+	//  return
+	// }
+	// // Create the current work task and check any fork transitions needed
+	// env := w.current
+	// if w.chainConfig.DAOForkSupport && w.chainConfig.DAOForkBlock != nil && w.chainConfig.DAOForkBlock.Cmp(header.Number) == 0 {
+	//  misc.ApplyDAOHardFork(env.state)
+	// }
+	///////////////
 	// Original code:
 	// // Accumulate the uncles for the current block
 	// uncles := make([]*types.Header, 0, 2)
 	// commitUncles := func(blocks map[common.Hash]*types.Block) {
-	// 	// Clean up stale uncle blocks first
-	// 	for hash, uncle := range blocks {
-	// 		if uncle.NumberU64()+staleThreshold <= header.Number.Uint64() {
-	// 			delete(blocks, hash)
-	// 		}
-	// 	}
-	// 	for hash, uncle := range blocks {
-	// 		if len(uncles) == 2 {
-	// 			break
-	// 		}
-	// 		if err := w.commitUncle(env, uncle.Header()); err != nil {
-	// 			log.Trace("Possible uncle rejected", "hash", hash, "reason", err)
-	// 		} else {
-	// 			log.Debug("Committing new uncle to block", "hash", hash)
-	// 			uncles = append(uncles, uncle.Header())
-	// 		}
-	// 	}
+	//  // Clean up stale uncle blocks first
+	//  for hash, uncle := range blocks {
+	//    if uncle.NumberU64()+staleThreshold <= header.Number.Uint64() {
+	//      delete(blocks, hash)
+	//    }
+	//  }
+	//  for hash, uncle := range blocks {
+	//    if len(uncles) == 2 {
+	//      break
+	//    }
+	//    if err := w.commitUncle(env, uncle.Header()); err != nil {
+	//      log.Trace("Possible uncle rejected", "hash", hash, "reason", err)
+	//    } else {
+	//      log.Debug("Committing new uncle to block", "hash", hash)
+	//      uncles = append(uncles, uncle.Header())
+	//    }
+	//  }
 	// }
 	// // Prefer to locally generated uncle
 	// commitUncles(w.localUncles)
@@ -1022,44 +1026,48 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	// // Create an empty block based on temporary copied state for
 	// // sealing in advance without waiting block execution finished.
 	// if !noempty && atomic.LoadUint32(&w.noempty) == 0 {
-	// 	// Original code:
-	// 	// w.commit(uncles, nil, false, tstart)
-	// 	w.commit(nil, nil, false, tstart)
+	//  // Original code:
+	//  // w.commit(uncles, nil, false, tstart)
+	//  w.commit(nil, nil, false, tstart)
 	// }
 
 	// Fill the block with all available pending transactions.
-	pending, err := w.eth.TxPool().Pending()
-	if err != nil {
-		log.Error("Failed to fetch pending transactions", "err", err)
-		return
-	}
+	///////////////
+	// pending, err := w.eth.TxPool().Pending()
+	// if err != nil {
+	//  log.Error("Failed to fetch pending transactions", "err", err)
+	//  return
+	// }
+	///////////////
 	// // Short circuit if there is no available pending transactions.
 	// // But if we disable empty precommit already, ignore it. Since
 	// // empty block is necessary to keep the liveness of the network.
 	// if len(pending) == 0 && atomic.LoadUint32(&w.noempty) == 0 {
-	// 	w.updateSnapshot()
-	// 	return
+	//  w.updateSnapshot()
+	//  return
 	// }
 	// Split the pending transactions into locals and remotes
-	localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
-	for _, account := range w.eth.TxPool().Locals() {
-		if txs := remoteTxs[account]; len(txs) > 0 {
-			delete(remoteTxs, account)
-			localTxs[account] = txs
-		}
-	}
-	if len(localTxs) > 0 {
-		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)
-		if w.commitTransactions(txs, w.coinbase, interrupt) {
-			return
-		}
-	}
-	if len(remoteTxs) > 0 {
-		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, remoteTxs)
-		if w.commitTransactions(txs, w.coinbase, interrupt) {
-			return
-		}
-	}
+	///////////////
+	// localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
+	// for _, account := range w.eth.TxPool().Locals() {
+	//  if txs := remoteTxs[account]; len(txs) > 0 {
+	//    delete(remoteTxs, account)
+	//    localTxs[account] = txs
+	//  }
+	// }
+	// if len(localTxs) > 0 {
+	//  txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)
+	//  if w.commitTransactions(txs, w.coinbase, interrupt) {
+	//    return
+	//  }
+	// }
+	// if len(remoteTxs) > 0 {
+	//  txs := types.NewTransactionsByPriceAndNonce(w.current.signer, remoteTxs)
+	//  if w.commitTransactions(txs, w.coinbase, interrupt) {
+	//    return
+	//  }
+	// }
+	///////////////
 	// Original code:
 	// w.commit(uncles, w.fullTaskHook, true, tstart)
 	w.commit(nil, w.fullTaskHook, tstart)
@@ -1093,7 +1101,7 @@ func (w *worker) commit(uncles []*types.Header, interval func(), start time.Time
 	}
 	// Original code:
 	// if update {
-	// 	w.updateSnapshot()
+	//  w.updateSnapshot()
 	// }
 	return nil
 }
@@ -1125,33 +1133,91 @@ func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 	return new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
 }
 
+func (w *worker) PrepareNewBlock() {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	timestamp := time.Now().Unix()
+
+	parent := w.chain.CurrentBlock()
+	if parent.Time() >= uint64(timestamp) {
+		//timestamp = int64(parent.Time() + 1)
+		timestamp = int64(parent.Time())
+	}
+
+	var gasLimit uint64
+	if w.chainConfig.IsApricotPhase1(big.NewInt(timestamp)) {
+		gasLimit = w.config.ApricotPhase1GasLimit
+	} else {
+		gasLimit = core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
+	}
+	num := parent.Number()
+	header := &types.Header{
+		ParentHash: parent.Hash(),
+		Number:     num.Add(num, common.Big1),
+		GasLimit:   gasLimit,
+		Extra:      nil,
+		Time:       uint64(timestamp),
+	}
+	// Only set the coinbase if our consensus engine is running (avoid spurious block rewards)
+	if w.isRunning() {
+		if w.coinbase == (common.Address{}) {
+			log.Error("Refusing to mine without etherbase")
+			return
+		}
+		header.Coinbase = w.coinbase
+	}
+	if err := w.engine.Prepare(w.chain, header); err != nil {
+		log.Error("Failed to prepare header for mining", "err", err)
+		return
+	}
+
+	// Could potentially happen if starting to mine in an odd state.
+	err := w.makeCurrent(parent, header)
+	if err != nil {
+		log.Error("Failed to create mining context", "err", err)
+		return
+	}
+	// Create the current work task and check any fork transitions needed
+	env := w.current
+	if w.chainConfig.DAOForkSupport && w.chainConfig.DAOForkBlock != nil && w.chainConfig.DAOForkBlock.Cmp(header.Number) == 0 {
+		misc.ApplyDAOHardFork(env.state)
+	}
+}
+
 // This function executes a transaction immediately but does not start generating block. It returns
 // a receipt (if execution exceeds) and the current root hash.
-func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) (*types.Receipt, common.Hash) {
+func (w *worker) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Hash, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	txMap := make(map[common.Address]types.Transactions)
-	txArray := make(types.Transactions, 1)
-	txArray[0] = tx
-	txMap[addr] = txArray
+	// Add tx to the tx pool synchronously
+	w.eth.TxPool().AddRemotesSync([]*types.Transaction{tx})
 
-	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, txMap)
+	// Retrieves the tx after the pool has done some validation.
+	pending, err := w.eth.TxPool().Pending()
+	if err != nil {
+		return nil, common.Hash{}, err
+	}
+
+	if len(pending) != 1 {
+		return nil, common.Hash{}, fmt.Errorf("Tx pool should have size exactly 1 but have size %d", len(pending))
+	}
+
+	// Execute transaction
 	interrupt := commitInterruptNone
-
-	receiptLenBeforeTx := len(w.current.receipts)
+	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, pending)
 	w.commitTransactions(txs, w.coinbase, &interrupt)
-	receiptLenAfterTx := len(w.current.receipts)
 
+	// Get root hash and receipt
+	receiptLenAfterTx := len(w.current.receipts)
 	rootHash := common.Hash{}
 	if w.current != nil && w.current.state != nil {
 		rootHash = w.current.state.IntermediateRoot(true)
 	}
 
-	// If there is a new receipt, it means the transaction is executed successfully.
-	if receiptLenAfterTx-receiptLenBeforeTx != 1 {
-		return nil, rootHash
-	}
+	// Remove transaction from the pool
+	w.eth.TxPool().RemoveTx(tx.Hash(), false)
 
-	return w.current.receipts[receiptLenAfterTx-1], rootHash
+	return w.current.receipts[receiptLenAfterTx-1], rootHash, nil
 }
