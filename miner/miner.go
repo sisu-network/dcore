@@ -233,6 +233,6 @@ func (miner *Miner) GetWorkerMux() *event.TypeMux {
 	return miner.worker.mux
 }
 
-func (miner *Miner) ExecuteTx(from common.Address, tx *types.Transaction) {
-	miner.worker.CommitTransaction(from, tx)
+func (miner *Miner) ExecuteTx(from common.Address, tx *types.Transaction) *types.Receipt {
+	return miner.worker.CommitTransaction(from, tx)
 }

@@ -1125,7 +1125,7 @@ func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 	return new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
 }
 
-func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) {
+func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) *types.Receipt {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -1136,5 +1136,15 @@ func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) {
 
 	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, txMap)
 	interrupt := commitInterruptNone
+
+	receiptLenBeforeTx := len(w.current.receipts)
 	w.commitTransactions(txs, w.coinbase, &interrupt)
+	receiptLenAfterTx := len(w.current.receipts)
+
+	// If there is a new receipt, it means the transaction is executed successfully.
+	if receiptLenAfterTx-receiptLenBeforeTx == 1 {
+		return w.current.receipts[receiptLenAfterTx-1]
+	}
+
+	return nil
 }
