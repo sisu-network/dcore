@@ -233,6 +233,10 @@ func (miner *Miner) GetWorkerMux() *event.TypeMux {
 	return miner.worker.mux
 }
 
+func (miner *Miner) PrepareNewBlock() {
+	miner.worker.PrepareNewBlock()
+}
+
 func (miner *Miner) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Hash, error) {
 	return miner.worker.ExecuteTxSync(tx)
 }
