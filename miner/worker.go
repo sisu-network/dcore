@@ -1216,5 +1216,8 @@ func (w *worker) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Ha
 		rootHash = w.current.state.IntermediateRoot(true)
 	}
 
+	// Remove transaction from the pool
+	w.eth.TxPool().RemoveTx(tx.Hash(), false)
+
 	return w.current.receipts[receiptLenAfterTx-1], rootHash, nil
 }
