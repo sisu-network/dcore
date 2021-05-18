@@ -1125,7 +1125,9 @@ func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 	return new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
 }
 
-func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) *types.Receipt {
+// This function executes a transaction immediately but does not start generating block. It returns
+// a receipt (if execution exceeds) and the current root hash.
+func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) (*types.Receipt, common.Hash) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -1141,10 +1143,15 @@ func (w *worker) CommitTransaction(addr common.Address, tx *types.Transaction) *
 	w.commitTransactions(txs, w.coinbase, &interrupt)
 	receiptLenAfterTx := len(w.current.receipts)
 
-	// If there is a new receipt, it means the transaction is executed successfully.
-	if receiptLenAfterTx-receiptLenBeforeTx == 1 {
-		return w.current.receipts[receiptLenAfterTx-1]
+	rootHash := common.Hash{}
+	if w.current != nil && w.current.state != nil {
+		rootHash = w.current.state.IntermediateRoot(true)
 	}
 
-	return nil
+	// If there is a new receipt, it means the transaction is executed successfully.
+	if receiptLenAfterTx-receiptLenBeforeTx != 1 {
+		return nil, rootHash
+	}
+
+	return w.current.receipts[receiptLenAfterTx-1], rootHash
 }

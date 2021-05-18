@@ -233,14 +233,6 @@ func (miner *Miner) GetWorkerMux() *event.TypeMux {
 	return miner.worker.mux
 }
 
-func (miner *Miner) ExecuteTx(from common.Address, tx *types.Transaction) *types.Receipt {
+func (miner *Miner) ExecuteTx(from common.Address, tx *types.Transaction) (*types.Receipt, common.Hash) {
 	return miner.worker.CommitTransaction(from, tx)
-}
-
-func (miner *Miner) GetIntermediateRootHash() common.Hash {
-	if miner.worker.current == nil || miner.worker.current.state == nil {
-		return common.Hash{}
-	}
-
-	return miner.worker.current.state.IntermediateRoot(true)
 }
