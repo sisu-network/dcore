@@ -1762,7 +1762,9 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	if cb.OnTxSubmitted != nil {
 		// We don't send it to ETH tx pool. Instead, make a callback so that it could be sent to
 		// Tendermint mem pool.
-		cb.OnTxSubmitted(tx)
+		if err := cb.OnTxSubmitted(tx); err != nil {
+			return common.Hash{}, err
+		}
 	} else {
 		if err := b.SendTx(ctx, tx); err != nil {
 			return common.Hash{}, err
