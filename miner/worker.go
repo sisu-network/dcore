@@ -1191,25 +1191,17 @@ func (w *worker) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Ha
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	// Add tx to the tx pool synchronously
-	errs := w.eth.TxPool().AddRemotesSync([]*types.Transaction{tx})
-	if errs[0] != nil {
-		return nil, common.Hash{}, errs[0]
-	}
-
-	// Retrieves the tx after the pool has done some validation.
-	pending, err := w.eth.TxPool().Pending()
+	from, err := w.eth.TxPool().GetAddressFromTx(tx)
 	if err != nil {
 		return nil, common.Hash{}, err
 	}
 
-	if len(pending) != 1 {
-		return nil, common.Hash{}, fmt.Errorf("Tx pool should have size exactly 1 but have size %d", len(pending))
-	}
+	txMap := make(map[common.Address]types.Transactions, 1)
+	txMap[from] = []*types.Transaction{tx}
 
 	// Execute transaction
 	interrupt := commitInterruptNone
-	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, pending)
+	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, txMap)
 	w.commitTransactions(txs, w.coinbase, &interrupt)
 
 	// Get root hash and receipt
