@@ -1480,6 +1480,10 @@ func (pool *TxPool) demoteUnexecutables() {
 	}
 }
 
+func (pool *TxPool) GetAddressFromTx(tx *types.Transaction) (common.Address, error) {
+	return types.Sender(pool.signer, tx)
+}
+
 // addressByHeartbeat is an account address tagged with its last activity timestamp.
 type addressByHeartbeat struct {
 	address   common.Address
