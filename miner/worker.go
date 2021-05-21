@@ -1192,7 +1192,10 @@ func (w *worker) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Ha
 	defer w.mu.Unlock()
 
 	// Add tx to the tx pool synchronously
-	w.eth.TxPool().AddRemotesSync([]*types.Transaction{tx})
+	errs := w.eth.TxPool().AddRemotesSync([]*types.Transaction{tx})
+	if errs[0] != nil {
+		return nil, common.Hash{}, errs[0]
+	}
 
 	// Retrieves the tx after the pool has done some validation.
 	pending, err := w.eth.TxPool().Pending()
