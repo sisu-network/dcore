@@ -798,24 +798,25 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 //  w.snapshotState = w.current.state.Copy()
 // }
 
-func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error) {
+func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, *types.Receipt, error) {
 	snap := w.current.state.Snapshot()
 
 	receipt, err := core.ApplyTransaction(w.chainConfig, w.chain, &coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &w.current.header.GasUsed, *w.chain.GetVMConfig())
 	if err != nil {
+		fmt.Println("Error applying transaction. Reverting to latest snapshot.", err)
 		w.current.state.RevertToSnapshot(snap)
-		return nil, err
+		return nil, nil, err
 	}
 	w.current.txs = append(w.current.txs, tx)
 	w.current.receipts = append(w.current.receipts, receipt)
 
-	return receipt.Logs, nil
+	return receipt.Logs, receipt, nil
 }
 
-func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) bool {
+func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) (bool, map[string]*types.Receipt, map[string]error) {
 	// Short circuit if current is nil
 	if w.current == nil {
-		return true
+		return true, nil, nil
 	}
 
 	if w.current.gasPool == nil {
@@ -823,6 +824,8 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	}
 
 	var coalescedLogs []*types.Log
+	receipts := make(map[string]*types.Receipt)
+	errs := make(map[string]error)
 
 	for {
 		// In the following three cases, we will interrupt the execution of the transaction.
@@ -843,7 +846,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 					inc:   true,
 				}
 			}
-			return atomic.LoadInt32(interrupt) == commitInterruptNewHead
+			return atomic.LoadInt32(interrupt) == commitInterruptNewHead, receipts, errs
 		}
 		// If we don't have enough gas for any further transactions then we're done
 		if w.current.gasPool.Gas() < params.TxGas {
@@ -871,7 +874,13 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		// Start executing the transaction
 		w.current.state.Prepare(tx.Hash(), common.Hash{}, w.current.tcount)
 
-		logs, err := w.commitTransaction(tx, coinbase)
+		logs, receipt, err := w.commitTransaction(tx, coinbase)
+		txHash := tx.Hash().String()
+		// Added code
+		if err == nil {
+			receipts[txHash] = receipt
+		}
+		errs[txHash] = err
 		switch {
 		case errors.Is(err, core.ErrGasLimitReached):
 			// Pop the current out-of-gas transaction without shifting in the next from the account
@@ -927,7 +936,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	if interrupt != nil {
 		w.resubmitAdjustCh <- &intervalAdjust{inc: false}
 	}
-	return false
+	return false, receipts, errs
 }
 
 // commitNewWork generates several new sealing tasks based on the parent block.
@@ -1202,17 +1211,18 @@ func (w *worker) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Ha
 	// Execute transaction
 	interrupt := commitInterruptNone
 	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, txMap)
-	w.commitTransactions(txs, w.coinbase, &interrupt)
+	_, receipts, errs := w.commitTransactions(txs, w.coinbase, &interrupt)
+
+	txHash := tx.Hash()
 
 	// Get root hash and receipt
-	receiptLenAfterTx := len(w.current.receipts)
 	rootHash := common.Hash{}
 	if w.current != nil && w.current.state != nil {
 		rootHash = w.current.state.IntermediateRoot(true)
 	}
 
 	// Remove transaction from the pool
-	w.eth.TxPool().RemoveTx(tx.Hash(), false)
+	w.eth.TxPool().RemoveTx(txHash, false)
 
-	return w.current.receipts[receiptLenAfterTx-1], rootHash, nil
+	return receipts[txHash.String()], rootHash, errs[txHash.String()]
 }
