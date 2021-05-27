@@ -19,9 +19,9 @@ package node
 import (
 	"sync"
 
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/prometheus/tsdb/fileutil"
+	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/rpc"
 )
 

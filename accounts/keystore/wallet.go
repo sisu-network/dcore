@@ -20,8 +20,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/core/types"
 )
 
