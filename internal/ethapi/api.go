@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
@@ -43,6 +42,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/sisu-network/dcore/consensus/clique"
 	"github.com/sisu-network/dcore/consensus/ethash"
+	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/tyler-smith/go-bip39"
 )

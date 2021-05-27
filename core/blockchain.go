@@ -2372,29 +2372,29 @@ Error: %v
 `, bc.chainConfig, block.Number(), block.Hash(), receiptString, err))
 }
 
-// InsertHeaderChain attempts to insert the given header chain in to the local
-// chain, possibly creating a reorg. If an error is returned, it will return the
-// index number of the failing header as well an error describing what went wrong.
-//
-// The verify parameter can be used to fine tune whether nonce verification
-// should be done or not. The reason behind the optional check is because some
-// of the header retrieval mechanisms already need to verify nonces, as well as
-// because nonces can be verified sparsely, not needing to check each.
-func (bc *BlockChain) InsertHeaderChain(chain []*types.Header, checkFreq int) (int, error) {
-	start := time.Now()
-	if i, err := bc.hc.ValidateHeaderChain(chain, checkFreq); err != nil {
-		return i, err
-	}
+// // InsertHeaderChain attempts to insert the given header chain in to the local
+// // chain, possibly creating a reorg. If an error is returned, it will return the
+// // index number of the failing header as well an error describing what went wrong.
+// //
+// // The verify parameter can be used to fine tune whether nonce verification
+// // should be done or not. The reason behind the optional check is because some
+// // of the header retrieval mechanisms already need to verify nonces, as well as
+// // because nonces can be verified sparsely, not needing to check each.
+// func (bc *BlockChain) InsertHeaderChain(chain []*types.Header, checkFreq int) (int, error) {
+// 	start := time.Now()
+// 	if i, err := bc.hc.ValidateHeaderChain(chain, checkFreq); err != nil {
+// 		return i, err
+// 	}
 
-	// Make sure only one thread manipulates the chain at once
-	bc.chainmu.Lock()
-	defer bc.chainmu.Unlock()
+// 	// Make sure only one thread manipulates the chain at once
+// 	bc.chainmu.Lock()
+// 	defer bc.chainmu.Unlock()
 
-	bc.wg.Add(1)
-	defer bc.wg.Done()
-	_, err := bc.hc.InsertHeaderChain(chain, start)
-	return 0, err
-}
+// 	bc.wg.Add(1)
+// 	defer bc.wg.Done()
+// 	_, err := bc.hc.InsertHeaderChain(chain, start)
+// 	return 0, err
+// }
 
 // CurrentHeader retrieves the current head header of the canonical chain. The
 // header is retrieved from the HeaderChain's internal cache.
@@ -2437,20 +2437,20 @@ func (bc *BlockChain) GetCanonicalHash(number uint64) common.Hash {
 	return bc.hc.GetCanonicalHash(number)
 }
 
-// GetBlockHashesFromHash retrieves a number of block hashes starting at a given
-// hash, fetching towards the genesis block.
-func (bc *BlockChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []common.Hash {
-	return bc.hc.GetBlockHashesFromHash(hash, max)
-}
+// // GetBlockHashesFromHash retrieves a number of block hashes starting at a given
+// // hash, fetching towards the genesis block.
+// func (bc *BlockChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []common.Hash {
+// 	return bc.hc.GetBlockHashesFromHash(hash, max)
+// }
 
-// GetAncestor retrieves the Nth ancestor of a given block. It assumes that either the given block or
-// a close ancestor of it is canonical. maxNonCanonical points to a downwards counter limiting the
-// number of blocks to be individually checked before we reach the canonical chain.
-//
-// Note: ancestor == 0 returns the same block, 1 returns its parent and so on.
-func (bc *BlockChain) GetAncestor(hash common.Hash, number, ancestor uint64, maxNonCanonical *uint64) (common.Hash, uint64) {
-	return bc.hc.GetAncestor(hash, number, ancestor, maxNonCanonical)
-}
+// // GetAncestor retrieves the Nth ancestor of a given block. It assumes that either the given block or
+// // a close ancestor of it is canonical. maxNonCanonical points to a downwards counter limiting the
+// // number of blocks to be individually checked before we reach the canonical chain.
+// //
+// // Note: ancestor == 0 returns the same block, 1 returns its parent and so on.
+// func (bc *BlockChain) GetAncestor(hash common.Hash, number, ancestor uint64, maxNonCanonical *uint64) (common.Hash, uint64) {
+// 	return bc.hc.GetAncestor(hash, number, ancestor, maxNonCanonical)
+// }
 
 // GetHeaderByNumber retrieves a block header from the database by number,
 // caching it (associated with its hash) if found.

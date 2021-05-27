@@ -17,8 +17,8 @@
 package core
 
 import (
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 )
 
