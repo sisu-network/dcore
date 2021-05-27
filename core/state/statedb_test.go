@@ -31,7 +31,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // Tests that updating a state trie does not leak any database writes prior to
