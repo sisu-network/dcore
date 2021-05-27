@@ -20,8 +20,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core/types"
 )
 
