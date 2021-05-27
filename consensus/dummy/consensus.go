@@ -83,7 +83,9 @@ func (self *DummyEngine) verifyHeader(chain consensus.ChainHeaderReader, header,
 		return fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit)
 	}
 
-	if config := chain.Config(); config.IsApricotPhase1(new(big.Int).SetUint64((header.Time))) {
+	// Original Code:
+	// if config := chain.Config(); config.IsApricotPhase1(new(big.Int).SetUint64((header.Time))) {
+	if false {
 		if header.GasLimit != params.ApricotPhase1GasLimit {
 			return fmt.Errorf("expected gas limit to be %d, but found %d", params.ApricotPhase1GasLimit, header.GasLimit)
 		}
@@ -229,10 +231,8 @@ func (self *DummyEngine) Finalize(
 
 func (self *DummyEngine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
 	uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-	var extdata []byte
 	if self.cb.OnFinalizeAndAssemble != nil {
-		ret, err := self.cb.OnFinalizeAndAssemble(state, txs)
-		extdata = ret
+		_, err := self.cb.OnFinalizeAndAssemble(state, txs)
 		if err != nil {
 			return nil, err
 		}
@@ -241,10 +241,7 @@ func (self *DummyEngine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, 
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 
 	// Header seems complete, assemble into a block and return
-	return types.NewBlock(
-		header, txs, uncles, receipts, new(trie.Trie), extdata,
-		chain.Config().IsApricotPhase1(new(big.Int).SetUint64(header.Time)),
-	), nil
+	return types.NewBlock(header, txs, uncles, receipts, new(trie.Trie)), nil
 }
 
 func (self *DummyEngine) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) (err error) {
