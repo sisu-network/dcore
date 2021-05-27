@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2018 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -43,13 +33,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	pcsc "github.com/gballet/go-libpcsclite"
-	"github.com/sisu-network/dcore/accounts"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/interfaces"
 	"github.com/status-im/keycard-go/derivationpath"
 )
 
@@ -129,11 +119,11 @@ type Wallet struct {
 	session *Session   // The secure communication session with the card
 	log     log.Logger // Contextual logger to tag the base with its id
 
-	deriveNextPaths []accounts.DerivationPath   // Next derivation paths for account auto-discovery (multiple bases supported)
-	deriveNextAddrs []common.Address            // Next derived account addresses for auto-discovery (multiple bases supported)
-	deriveChain     interfaces.ChainStateReader // Blockchain state reader to discover used account with
-	deriveReq       chan chan struct{}          // Channel to request a self-derivation on
-	deriveQuit      chan chan error             // Channel to terminate the self-deriver with
+	deriveNextPaths []accounts.DerivationPath // Next derivation paths for account auto-discovery (multiple bases supported)
+	deriveNextAddrs []common.Address          // Next derived account addresses for auto-discovery (multiple bases supported)
+	deriveChain     ethereum.ChainStateReader // Blockchain state reader to discover used account with
+	deriveReq       chan chan struct{}        // Channel to request a self-derivation on
+	deriveQuit      chan chan error           // Channel to terminate the self-deriver with
 }
 
 // NewWallet constructs and returns a new Wallet instance.
@@ -657,7 +647,7 @@ func (w *Wallet) Derive(path accounts.DerivationPath, pin bool) (accounts.Accoun
 //
 // You can disable automatic account discovery by calling SelfDerive with a nil
 // chain state reader.
-func (w *Wallet) SelfDerive(bases []accounts.DerivationPath, chain interfaces.ChainStateReader) {
+func (w *Wallet) SelfDerive(bases []accounts.DerivationPath, chain ethereum.ChainStateReader) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 

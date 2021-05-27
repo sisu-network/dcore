@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2018 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -30,14 +20,15 @@ import (
 	"bytes"
 	"encoding/binary"
 	"math/big"
+	"sort"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/params"
 )
 
 // ReadCanonicalHash retrieves the hash assigned to a canonical block number.
@@ -604,16 +595,12 @@ func ReadReceipts(db ethdb.Reader, hash common.Hash, number uint64, config *para
 	if receipts == nil {
 		return nil
 	}
-	header := ReadHeader(db, hash, number)
-	if header == nil {
-		return nil
-	}
 	body := ReadBody(db, hash, number)
 	if body == nil {
 		log.Error("Missing body but have receipt", "hash", hash, "number", number)
 		return nil
 	}
-	if err := receipts.DeriveFields(config, hash, number, header.Time, body.Transactions); err != nil {
+	if err := receipts.DeriveFields(config, hash, number, body.Transactions); err != nil {
 		log.Error("Failed to derive block receipts fields", "hash", hash, "number", number, "err", err)
 		return nil
 	}
@@ -659,7 +646,7 @@ func ReadBlock(db ethdb.Reader, hash common.Hash, number uint64) *types.Block {
 	if body == nil {
 		return nil
 	}
-	return types.NewBlockWithHeader(header).WithBody(body.Transactions, body.Uncles, body.Version, body.ExtData)
+	return types.NewBlockWithHeader(header).WithBody(body.Transactions, body.Uncles)
 }
 
 // WriteBlock serializes a block into the database, header and body separately.
@@ -716,6 +703,102 @@ func DeleteBlockWithoutNumber(db ethdb.KeyValueWriter, hash common.Hash, number 
 	DeleteTd(db, hash, number)
 }
 
+const badBlockToKeep = 10
+
+type badBlock struct {
+	Header *types.Header
+	Body   *types.Body
+}
+
+// badBlockList implements the sort interface to allow sorting a list of
+// bad blocks by their number in the reverse order.
+type badBlockList []*badBlock
+
+func (s badBlockList) Len() int { return len(s) }
+func (s badBlockList) Less(i, j int) bool {
+	return s[i].Header.Number.Uint64() < s[j].Header.Number.Uint64()
+}
+func (s badBlockList) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+// ReadBadBlock retrieves the bad block with the corresponding block hash.
+func ReadBadBlock(db ethdb.Reader, hash common.Hash) *types.Block {
+	blob, err := db.Get(badBlockKey)
+	if err != nil {
+		return nil
+	}
+	var badBlocks badBlockList
+	if err := rlp.DecodeBytes(blob, &badBlocks); err != nil {
+		return nil
+	}
+	for _, bad := range badBlocks {
+		if bad.Header.Hash() == hash {
+			return types.NewBlockWithHeader(bad.Header).WithBody(bad.Body.Transactions, bad.Body.Uncles)
+		}
+	}
+	return nil
+}
+
+// ReadAllBadBlocks retrieves all the bad blocks in the database.
+// All returned blocks are sorted in reverse order by number.
+func ReadAllBadBlocks(db ethdb.Reader) []*types.Block {
+	blob, err := db.Get(badBlockKey)
+	if err != nil {
+		return nil
+	}
+	var badBlocks badBlockList
+	if err := rlp.DecodeBytes(blob, &badBlocks); err != nil {
+		return nil
+	}
+	var blocks []*types.Block
+	for _, bad := range badBlocks {
+		blocks = append(blocks, types.NewBlockWithHeader(bad.Header).WithBody(bad.Body.Transactions, bad.Body.Uncles))
+	}
+	return blocks
+}
+
+// WriteBadBlock serializes the bad block into the database. If the cumulated
+// bad blocks exceeds the limitation, the oldest will be dropped.
+func WriteBadBlock(db ethdb.KeyValueStore, block *types.Block) {
+	blob, err := db.Get(badBlockKey)
+	if err != nil {
+		log.Warn("Failed to load old bad blocks", "error", err)
+	}
+	var badBlocks badBlockList
+	if len(blob) > 0 {
+		if err := rlp.DecodeBytes(blob, &badBlocks); err != nil {
+			log.Crit("Failed to decode old bad blocks", "error", err)
+		}
+	}
+	for _, b := range badBlocks {
+		if b.Header.Number.Uint64() == block.NumberU64() && b.Header.Hash() == block.Hash() {
+			log.Info("Skip duplicated bad block", "number", block.NumberU64(), "hash", block.Hash())
+			return
+		}
+	}
+	badBlocks = append(badBlocks, &badBlock{
+		Header: block.Header(),
+		Body:   block.Body(),
+	})
+	sort.Sort(sort.Reverse(badBlocks))
+	if len(badBlocks) > badBlockToKeep {
+		badBlocks = badBlocks[:badBlockToKeep]
+	}
+	data, err := rlp.EncodeToBytes(badBlocks)
+	if err != nil {
+		log.Crit("Failed to encode bad blocks", "err", err)
+	}
+	if err := db.Put(badBlockKey, data); err != nil {
+		log.Crit("Failed to write bad blocks", "err", err)
+	}
+}
+
+// DeleteBadBlocks deletes all the bad blocks from the database
+func DeleteBadBlocks(db ethdb.KeyValueWriter) {
+	if err := db.Delete(badBlockKey); err != nil {
+		log.Crit("Failed to delete bad blocks", "err", err)
+	}
+}
+
 // FindCommonAncestor returns the last common ancestor of two block headers
 func FindCommonAncestor(db ethdb.Reader, a, b *types.Header) *types.Header {
 	for bn := b.Number.Uint64(); a.Number.Uint64() > bn; {
@@ -741,6 +824,19 @@ func FindCommonAncestor(db ethdb.Reader, a, b *types.Header) *types.Header {
 		}
 	}
 	return a
+}
+
+// ReadHeadHeader returns the current canonical head header.
+func ReadHeadHeader(db ethdb.Reader) *types.Header {
+	headHeaderHash := ReadHeadHeaderHash(db)
+	if headHeaderHash == (common.Hash{}) {
+		return nil
+	}
+	headHeaderNumber := ReadHeaderNumber(db, headHeaderHash)
+	if headHeaderNumber == nil {
+		return nil
+	}
+	return ReadHeader(db, headHeaderHash, *headHeaderNumber)
 }
 
 // ReadHeadBlock returns the current canonical head block.

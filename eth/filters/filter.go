@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2014 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -29,18 +19,15 @@ package filters
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 
-	"github.com/sisu-network/dcore/core/vm"
-
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/bloombits"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/bloombits"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/rpc"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type Backend interface {
@@ -52,22 +39,12 @@ type Backend interface {
 
 	SubscribeNewTxsEvent(chan<- core.NewTxsEvent) event.Subscription
 	SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription
-	SubscribeChainAcceptedEvent(ch chan<- core.ChainEvent) event.Subscription
 	SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEvent) event.Subscription
 	SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscription
-	SubscribeAcceptedLogsEvent(ch chan<- []*types.Log) event.Subscription
-
 	SubscribePendingLogsEvent(ch chan<- []*types.Log) event.Subscription
-
-	SubscribeAcceptedTransactionEvent(ch chan<- core.NewTxsEvent) event.Subscription
 
 	BloomStatus() (uint64, uint64)
 	ServiceFilter(ctx context.Context, session *bloombits.MatcherSession)
-
-	// Added to the backend interface to support limiting of logs requests
-	GetVMConfig() *vm.Config
-	LastAcceptedBlock() *types.Block
-	GetMaxBlocksPerRequest() int64
 }
 
 // Filter can be used to retrieve and filter logs.
@@ -86,10 +63,7 @@ type Filter struct {
 
 // NewRangeFilter creates a new filter which uses a bloom filter on blocks to
 // figure out whether a particular block is interesting or not.
-func NewRangeFilter(backend Backend, begin, end int64, addresses []common.Address, topics [][]common.Hash) (*Filter, error) {
-	allowUnfinalizedQueries := backend.GetVMConfig().AllowUnfinalizedQueries
-	acceptedBlock := backend.LastAcceptedBlock()
-
+func NewRangeFilter(backend Backend, begin, end int64, addresses []common.Address, topics [][]common.Hash) *Filter {
 	// Flatten the address and topic filter clauses into a single bloombits filter
 	// system. Since the bloombits are not positional, nil topics are permitted,
 	// which get flattened into a nil byte slice.
@@ -110,22 +84,14 @@ func NewRangeFilter(backend Backend, begin, end int64, addresses []common.Addres
 	}
 	size, _ := backend.BloomStatus()
 
-	if !allowUnfinalizedQueries && acceptedBlock != nil {
-		lastAccepted := acceptedBlock.Number().Int64()
-		if begin >= 0 && begin > lastAccepted {
-			return nil, fmt.Errorf("requested from block %d after last accepted block %d", begin, lastAccepted)
-		}
-		if end >= 0 && end > lastAccepted {
-			return nil, fmt.Errorf("requested to block %d after last accepted block %d", end, lastAccepted)
-		}
-	}
-
 	// Create a generic filter and convert it into a range filter
 	filter := newFilter(backend, addresses, topics)
+
 	filter.matcher = bloombits.NewMatcher(size, filters)
 	filter.begin = begin
 	filter.end = end
-	return filter, nil
+
+	return filter
 }
 
 // NewBlockFilter creates a new filter which directly inspects the contents of
@@ -163,42 +129,24 @@ func (f *Filter) Logs(ctx context.Context) ([]*types.Log, error) {
 		return f.blockLogs(ctx, header)
 	}
 	// Figure out the limits of the filter range
-	// LatestBlockNumber is transformed into the last accepted block in HeaderByNumber
-	// so it is left in place here.
-	header, err := f.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
-	if err != nil {
-		return nil, err
-	}
+	header, _ := f.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
 	if header == nil {
 		return nil, nil
 	}
 	head := header.Number.Uint64()
 
-	if f.begin < 0 {
+	if f.begin == -1 {
 		f.begin = int64(head)
 	}
 	end := uint64(f.end)
-	if f.end < 0 {
+	if f.end == -1 {
 		end = head
 	}
-
-	// When querying unfinalized data without a populated end block, it is
-	// possible that the begin will be greater than the end.
-	//
-	// We error in this case to prevent a bad UX where the caller thinks there
-	// are no logs from the specified beginning to end (when in reality there may
-	// be some).
-	if end < uint64(f.begin) {
-		return nil, fmt.Errorf("begin block %d is greater than end block %d", f.begin, end)
-	}
-
-	// If the requested range of blocks exceeds the maximum number of blocks allowed by the backend
-	// return an error instead of searching for the logs.
-	if maxBlocks := f.backend.GetMaxBlocksPerRequest(); int64(end)-f.begin > maxBlocks && maxBlocks > 0 {
-		return nil, fmt.Errorf("requested too many blocks from %d to %d, maximum is set to %d", f.begin, int64(end), maxBlocks)
-	}
 	// Gather all indexed logs, and finish with non indexed ones
-	var logs []*types.Log
+	var (
+		logs []*types.Log
+		err  error
+	)
 	size, sections := f.backend.BloomStatus()
 	if indexed := sections * size; indexed > uint64(f.begin) {
 		if indexed > end {

@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -30,28 +20,23 @@ import (
 	"context"
 	"errors"
 	"math/big"
-	"time"
 
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/bloombits"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/downloader"
+	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/sisu-network/dcore/accounts"
-	"github.com/sisu-network/dcore/consensus"
-	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/bloombits"
-	"github.com/sisu-network/dcore/core/rawdb"
-	"github.com/sisu-network/dcore/core/state"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/core/vm"
-	"github.com/sisu-network/dcore/eth/gasprice"
-	"github.com/sisu-network/dcore/params"
-	"github.com/sisu-network/dcore/rpc"
-)
-
-var (
-	ErrUnfinalizedData = errors.New("cannot query unfinalized data")
-	errExpired         = errors.New("request expired")
+	"github.com/ethereum/go-ethereum/miner"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // EthAPIBackend implements ethapi.Backend for full nodes
@@ -60,7 +45,6 @@ type EthAPIBackend struct {
 	allowUnprotectedTxs bool
 	eth                 *Ethereum
 	gpo                 *gasprice.Oracle
-	cb                  *types.BackendAPICallback
 }
 
 // ChainConfig returns the active chain configuration.
@@ -68,41 +52,25 @@ func (b *EthAPIBackend) ChainConfig() *params.ChainConfig {
 	return b.eth.blockchain.Config()
 }
 
-func (b *EthAPIBackend) GetVMConfig() *vm.Config {
-	return b.eth.blockchain.GetVMConfig()
-}
-
 func (b *EthAPIBackend) CurrentBlock() *types.Block {
 	return b.eth.blockchain.CurrentBlock()
 }
 
-func (b *EthAPIBackend) LastAcceptedBlock() *types.Block {
-	return b.eth.LastAcceptedBlock()
+func (b *EthAPIBackend) SetHead(number uint64) {
+	b.eth.handler.downloader.Cancel()
+	b.eth.blockchain.SetHead(number)
 }
 
-// Original code:
-// func (b *EthAPIBackend) SetHead(number uint64) {
-// 	//b.eth.protocolManager.downloader.Cancel()
-// 	b.eth.blockchain.SetHead(number)
-// }
-
 func (b *EthAPIBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Header, error) {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
+	// Pending block is only known by the miner
+	if number == rpc.PendingBlockNumber {
+		block := b.eth.miner.PendingBlock()
+		return block.Header(), nil
 	}
-	// Treat requests for the pending, latest, or accepted block
-	// identically.
-	acceptedBlock := b.eth.LastAcceptedBlock()
-	if number.IsAccepted() {
-		return acceptedBlock.Header(), nil
+	// Otherwise resolve and return the block
+	if number == rpc.LatestBlockNumber {
+		return b.eth.blockchain.CurrentBlock().Header(), nil
 	}
-
-	if !b.GetVMConfig().AllowUnfinalizedQueries && acceptedBlock != nil {
-		if number.Int64() > acceptedBlock.Number().Int64() {
-			return nil, ErrUnfinalizedData
-		}
-	}
-
 	return b.eth.blockchain.GetHeaderByNumber(uint64(number)), nil
 }
 
@@ -124,45 +92,29 @@ func (b *EthAPIBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash 
 }
 
 func (b *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
-	}
 	return b.eth.blockchain.GetHeaderByHash(hash), nil
 }
 
 func (b *EthAPIBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Block, error) {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
+	// Pending block is only known by the miner
+	if number == rpc.PendingBlockNumber {
+		block := b.eth.miner.PendingBlock()
+		return block, nil
 	}
-	// Treat requests for the pending, latest, or accepted block
-	// identically.
-	acceptedBlock := b.eth.LastAcceptedBlock()
-	if number.IsAccepted() {
-		return b.eth.LastAcceptedBlock(), nil
+	// Otherwise resolve and return the block
+	if number == rpc.LatestBlockNumber {
+		return b.eth.blockchain.CurrentBlock(), nil
 	}
-
-	if !b.GetVMConfig().AllowUnfinalizedQueries && acceptedBlock != nil {
-		if number.Int64() > acceptedBlock.Number().Int64() {
-			return nil, ErrUnfinalizedData
-		}
-	}
-
 	return b.eth.blockchain.GetBlockByNumber(uint64(number)), nil
 }
 
 func (b *EthAPIBackend) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
-	}
 	return b.eth.blockchain.GetBlockByHash(hash), nil
 }
 
 func (b *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Block, error) {
 	if blockNr, ok := blockNrOrHash.Number(); ok {
 		return b.BlockByNumber(ctx, blockNr)
-	}
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
 	}
 	if hash, ok := blockNrOrHash.Hash(); ok {
 		header := b.eth.blockchain.GetHeaderByHash(hash)
@@ -182,7 +134,12 @@ func (b *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash r
 }
 
 func (b *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
-	// Request the block by its number and retrieve its state
+	// Pending state is only known by the miner
+	if number == rpc.PendingBlockNumber {
+		block, state := b.eth.miner.Pending()
+		return state, block.Header(), nil
+	}
+	// Otherwise resolve the block number and return its state
 	header, err := b.HeaderByNumber(ctx, number)
 	if err != nil {
 		return nil, nil, err
@@ -197,9 +154,6 @@ func (b *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.B
 func (b *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*state.StateDB, *types.Header, error) {
 	if blockNr, ok := blockNrOrHash.Number(); ok {
 		return b.StateAndHeaderByNumber(ctx, blockNr)
-	}
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, nil, errExpired
 	}
 	if hash, ok := blockNrOrHash.Hash(); ok {
 		header, err := b.HeaderByHash(ctx, hash)
@@ -219,16 +173,10 @@ func (b *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockN
 }
 
 func (b *EthAPIBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
-	}
 	return b.eth.blockchain.GetReceiptsByHash(hash), nil
 }
 
 func (b *EthAPIBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*types.Log, error) {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return nil, errExpired
-	}
 	receipts := b.eth.blockchain.GetReceiptsByHash(hash)
 	if receipts == nil {
 		return nil, nil
@@ -266,10 +214,6 @@ func (b *EthAPIBackend) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Sub
 	return b.eth.BlockChain().SubscribeChainEvent(ch)
 }
 
-func (b *EthAPIBackend) SubscribeChainAcceptedEvent(ch chan<- core.ChainEvent) event.Subscription {
-	return b.eth.BlockChain().SubscribeChainAcceptedEvent(ch)
-}
-
 func (b *EthAPIBackend) SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription {
 	return b.eth.BlockChain().SubscribeChainHeadEvent(ch)
 }
@@ -282,24 +226,8 @@ func (b *EthAPIBackend) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscri
 	return b.eth.BlockChain().SubscribeLogsEvent(ch)
 }
 
-func (b *EthAPIBackend) SubscribeAcceptedLogsEvent(ch chan<- []*types.Log) event.Subscription {
-	return b.eth.BlockChain().SubscribeAcceptedLogsEvent(ch)
-}
-
-func (b *EthAPIBackend) SubscribeAcceptedTransactionEvent(ch chan<- core.NewTxsEvent) event.Subscription {
-	return b.eth.BlockChain().SubscribeAcceptedTransactionEvent(ch)
-}
-
 func (b *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction) error {
-	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
-		return errExpired
-	}
-	err := b.eth.txPool.AddLocal(signedTx)
-	select {
-	case b.eth.txSubmitChan <- struct{}{}:
-	default:
-	}
-	return err
+	return b.eth.txPool.AddLocal(signedTx)
 }
 
 func (b *EthAPIBackend) GetPoolTransactions() (types.Transactions, error) {
@@ -320,18 +248,6 @@ func (b *EthAPIBackend) GetPoolTransaction(hash common.Hash) *types.Transaction 
 
 func (b *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, common.Hash, uint64, uint64, error) {
 	tx, blockHash, blockNumber, index := rawdb.ReadTransaction(b.eth.ChainDb(), txHash)
-
-	// Respond as if the transaction does not exist if it is not yet in an
-	// accepted block. We explicitly choose not to error here to avoid breaking
-	// expectations with clients (expect an empty response when a transaction
-	// does not exist).
-	acceptedBlock := b.eth.LastAcceptedBlock()
-	if !b.GetVMConfig().AllowUnfinalizedQueries && acceptedBlock != nil && tx != nil {
-		if blockNumber > acceptedBlock.NumberU64() {
-			return nil, common.Hash{}, 0, 0, nil
-		}
-	}
-
 	return tx, blockHash, blockNumber, index, nil
 }
 
@@ -410,8 +326,12 @@ func (b *EthAPIBackend) CurrentHeader() *types.Header {
 	return b.eth.blockchain.CurrentHeader()
 }
 
-func (b *EthAPIBackend) GetMaxBlocksPerRequest() int64 {
-	return b.eth.settings.MaxBlocksPerRequest
+func (b *EthAPIBackend) Miner() *miner.Miner {
+	return b.eth.Miner()
+}
+
+func (b *EthAPIBackend) StartMining(threads int) error {
+	return b.eth.StartMining(threads)
 }
 
 func (b *EthAPIBackend) StateAtBlock(ctx context.Context, block *types.Block, reexec uint64, base *state.StateDB, checkLive bool) (*state.StateDB, error) {
@@ -420,8 +340,4 @@ func (b *EthAPIBackend) StateAtBlock(ctx context.Context, block *types.Block, re
 
 func (b *EthAPIBackend) StateAtTransaction(ctx context.Context, block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, error) {
 	return b.eth.stateAtTransaction(block, txIndex, reexec)
-}
-
-func (b *EthAPIBackend) GetBackendAPICallback() *types.BackendAPICallback {
-	return b.cb
 }

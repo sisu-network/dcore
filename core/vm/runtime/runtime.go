@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -32,11 +22,11 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/sisu-network/dcore/core/rawdb"
-	"github.com/sisu-network/dcore/core/state"
-	"github.com/sisu-network/dcore/core/vm"
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // Config is a basic type specifying certain configuration flags for running
@@ -62,21 +52,21 @@ type Config struct {
 func setDefaults(cfg *Config) {
 	if cfg.ChainConfig == nil {
 		cfg.ChainConfig = &params.ChainConfig{
-			ChainID:                     big.NewInt(1),
-			HomesteadBlock:              new(big.Int),
-			DAOForkBlock:                new(big.Int),
-			DAOForkSupport:              false,
-			EIP150Block:                 new(big.Int),
-			EIP150Hash:                  common.Hash{},
-			EIP155Block:                 new(big.Int),
-			EIP158Block:                 new(big.Int),
-			ByzantiumBlock:              new(big.Int),
-			ConstantinopleBlock:         new(big.Int),
-			PetersburgBlock:             new(big.Int),
-			IstanbulBlock:               new(big.Int),
-			MuirGlacierBlock:            new(big.Int),
-			ApricotPhase2BlockTimestamp: new(big.Int),
-			YoloV3Block:                 nil,
+			ChainID:             big.NewInt(1),
+			HomesteadBlock:      new(big.Int),
+			DAOForkBlock:        new(big.Int),
+			DAOForkSupport:      false,
+			EIP150Block:         new(big.Int),
+			EIP150Hash:          common.Hash{},
+			EIP155Block:         new(big.Int),
+			EIP158Block:         new(big.Int),
+			ByzantiumBlock:      new(big.Int),
+			ConstantinopleBlock: new(big.Int),
+			PetersburgBlock:     new(big.Int),
+			IstanbulBlock:       new(big.Int),
+			MuirGlacierBlock:    new(big.Int),
+			BerlinBlock:         new(big.Int),
+			YoloV3Block:         nil,
 		}
 	}
 
@@ -124,7 +114,7 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *state.StateDB, error) {
 		vmenv   = NewEnv(cfg)
 		sender  = vm.AccountRef(cfg.Origin)
 	)
-	if rules := cfg.ChainConfig.AvalancheRules(vmenv.Context.BlockNumber, vmenv.Context.Time); rules.IsApricotPhase2 {
+	if rules := cfg.ChainConfig.Rules(vmenv.Context.BlockNumber); rules.IsBerlin {
 		cfg.State.PrepareAccessList(cfg.Origin, &address, vm.ActivePrecompiles(rules), nil)
 	}
 	cfg.State.CreateAccount(address)
@@ -156,7 +146,7 @@ func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
 		vmenv  = NewEnv(cfg)
 		sender = vm.AccountRef(cfg.Origin)
 	)
-	if rules := cfg.ChainConfig.AvalancheRules(vmenv.Context.BlockNumber, vmenv.Context.Time); rules.IsApricotPhase2 {
+	if rules := cfg.ChainConfig.Rules(vmenv.Context.BlockNumber); rules.IsBerlin {
 		cfg.State.PrepareAccessList(cfg.Origin, nil, vm.ActivePrecompiles(rules), nil)
 	}
 	// Call the code with the given configuration.
@@ -182,7 +172,7 @@ func Call(address common.Address, input []byte, cfg *Config) ([]byte, uint64, er
 	sender := cfg.State.GetOrNewStateObject(cfg.Origin)
 	statedb := cfg.State
 
-	if rules := cfg.ChainConfig.AvalancheRules(vmenv.Context.BlockNumber, vmenv.Context.Time); rules.IsApricotPhase2 {
+	if rules := cfg.ChainConfig.Rules(vmenv.Context.BlockNumber); rules.IsBerlin {
 		statedb.PrepareAccessList(cfg.Origin, &address, vm.ActivePrecompiles(rules), nil)
 	}
 	// Call the code with the given configuration.

@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2019 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -39,19 +29,17 @@ import (
 // or slim-snapshot format which replaces the empty root and code hash as nil
 // byte slice.
 type Account struct {
-	Nonce       uint64
-	Balance     *big.Int
-	Root        []byte
-	CodeHash    []byte
-	IsMultiCoin bool
+	Nonce    uint64
+	Balance  *big.Int
+	Root     []byte
+	CodeHash []byte
 }
 
 // SlimAccount converts a state.Account content into a slim snapshot account
-func SlimAccount(nonce uint64, balance *big.Int, root common.Hash, codehash []byte, isMultiCoin bool) Account {
+func SlimAccount(nonce uint64, balance *big.Int, root common.Hash, codehash []byte) Account {
 	slim := Account{
-		Nonce:       nonce,
-		Balance:     balance,
-		IsMultiCoin: isMultiCoin,
+		Nonce:   nonce,
+		Balance: balance,
 	}
 	if root != emptyRoot {
 		slim.Root = root[:]
@@ -64,8 +52,8 @@ func SlimAccount(nonce uint64, balance *big.Int, root common.Hash, codehash []by
 
 // SlimAccountRLP converts a state.Account content into a slim snapshot
 // version RLP encoded.
-func SlimAccountRLP(nonce uint64, balance *big.Int, root common.Hash, codehash []byte, isMultiCoin bool) []byte {
-	data, err := rlp.EncodeToBytes(SlimAccount(nonce, balance, root, codehash, isMultiCoin))
+func SlimAccountRLP(nonce uint64, balance *big.Int, root common.Hash, codehash []byte) []byte {
+	data, err := rlp.EncodeToBytes(SlimAccount(nonce, balance, root, codehash))
 	if err != nil {
 		panic(err)
 	}

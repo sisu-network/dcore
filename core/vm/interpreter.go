@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2014 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -35,13 +25,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
-var (
-	BuiltinAddr = common.Address{
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	}
-)
-
 // Config are the configuration options for the Interpreter
 type Config struct {
 	Debug                   bool   // Enables debugging
@@ -55,9 +38,6 @@ type Config struct {
 	EVMInterpreter   string // External EVM interpreter options
 
 	ExtraEips []int // Additional EIPS that are to be enabled
-
-	// AllowUnfinalizedQueries allow unfinalized queries
-	AllowUnfinalizedQueries bool
 }
 
 // Interpreter is used to run Ethereum based contracts and will utilise the
@@ -118,10 +98,8 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 	if cfg.JumpTable[STOP] == nil {
 		var jt JumpTable
 		switch {
-		case evm.chainRules.IsApricotPhase2:
-			jt = apricotPhase2InstructionSet
-		case evm.chainRules.IsApricotPhase1:
-			jt = apricotPhase1InstructionSet
+		case evm.chainRules.IsBerlin:
+			jt = berlinInstructionSet
 		case evm.chainRules.IsIstanbul:
 			jt = istanbulInstructionSet
 		case evm.chainRules.IsConstantinople:
@@ -160,20 +138,13 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 // considered a revert-and-consume-all-gas operation except for
 // ErrExecutionReverted which means revert-and-keep-gas-left.
 func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
-	if contract.Address() == BuiltinAddr {
-		self := AccountRef(contract.Caller())
-		if _, ok := contract.caller.(*Contract); ok {
-			contract = contract.AsDelegate()
-		}
-		contract.self = self
-	}
 
 	// Increment the call depth which is restricted to 1024
 	in.evm.depth++
 	defer func() { in.evm.depth-- }()
 
 	// Make sure the readOnly is only set if we aren't in readOnly yet.
-	// This makes also sure that the readOnly flag isn't removed for child calls.
+	// This also makes sure that the readOnly flag isn't removed for child calls.
 	if readOnly && !in.readOnly {
 		in.readOnly = true
 		defer func() { in.readOnly = false }()
@@ -184,8 +155,6 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	in.returnData = nil
 
 	// Don't bother with the execution if there's no code.
-	// Note: this avoids invoking the tracer in any way for simple value
-	// transfers to EOA accounts.
 	if len(contract.Code) == 0 {
 		return nil, nil
 	}
@@ -210,7 +179,6 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		logged  bool   // deferred Tracer should ignore already logged steps
 		res     []byte // result of the opcode execution function
 	)
-
 	// Don't move this deferrred function, it's placed before the capturestate-deferred method,
 	// so that it get's executed _after_: the capturestate needs the stacks before
 	// they are returned to the pools
@@ -258,14 +226,14 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		} else if sLen > operation.maxStack {
 			return nil, &ErrStackOverflow{stackLen: sLen, limit: operation.maxStack}
 		}
-		// If the operation is valid, enforce and write restrictions
+		// If the operation is valid, enforce write restrictions
 		if in.readOnly && in.evm.chainRules.IsByzantium {
 			// If the interpreter is operating in readonly mode, make sure no
 			// state-modifying operation is performed. The 3rd stack item
 			// for a call operation is the value. Transferring value from one
 			// account to the others means the state is modified and should also
 			// return with an error.
-			if operation.writes || ((op == CALL || op == CALLEX) && stack.Back(2).Sign() != 0) {
+			if operation.writes || (op == CALL && stack.Back(2).Sign() != 0) {
 				return nil, ErrWriteProtection
 			}
 		}

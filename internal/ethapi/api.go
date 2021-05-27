@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -36,21 +26,24 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/accounts/scwallet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/consensus/clique"
+	"github.com/ethereum/go-ethereum/consensus/ethash"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/sisu-network/dcore/accounts"
-	"github.com/sisu-network/dcore/accounts/keystore"
-	"github.com/sisu-network/dcore/accounts/scwallet"
-	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/core/vm"
-	"github.com/sisu-network/dcore/params"
-	"github.com/sisu-network/dcore/rpc"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/tyler-smith/go-bip39"
 )
 
@@ -79,21 +72,20 @@ func (s *PublicEthereumAPI) GasPrice(ctx context.Context) (*hexutil.Big, error) 
 // - pulledStates:  number of state entries processed until now
 // - knownStates:   number of known state entries that still need to be pulled
 func (s *PublicEthereumAPI) Syncing() (interface{}, error) {
-	return nil, errors.New("not implemented in coreth") // Info or Health API should be used instead
-	// progress := s.b.Downloader().Progress()
+	progress := s.b.Downloader().Progress()
 
-	// // Return not syncing if the synchronisation already completed
-	// if progress.CurrentBlock >= progress.HighestBlock {
-	// 	return false, nil
-	// }
-	// // Otherwise gather the block sync stats
-	// return map[string]interface{}{
-	// 	"startingBlock": hexutil.Uint64(progress.StartingBlock),
-	// 	"currentBlock":  hexutil.Uint64(progress.CurrentBlock),
-	// 	"highestBlock":  hexutil.Uint64(progress.HighestBlock),
-	// 	"pulledStates":  hexutil.Uint64(progress.PulledStates),
-	// 	"knownStates":   hexutil.Uint64(progress.KnownStates),
-	// }, nil
+	// Return not syncing if the synchronisation already completed
+	if progress.CurrentBlock >= progress.HighestBlock {
+		return false, nil
+	}
+	// Otherwise gather the block sync stats
+	return map[string]interface{}{
+		"startingBlock": hexutil.Uint64(progress.StartingBlock),
+		"currentBlock":  hexutil.Uint64(progress.CurrentBlock),
+		"highestBlock":  hexutil.Uint64(progress.HighestBlock),
+		"pulledStates":  hexutil.Uint64(progress.PulledStates),
+		"knownStates":   hexutil.Uint64(progress.KnownStates),
+	}, nil
 }
 
 // PublicTxPoolAPI offers and API for the transaction pool. It only operates on data that is non confidential.
@@ -636,13 +628,12 @@ func (s *PublicBlockChainAPI) GetHeaderByNumber(ctx context.Context, number rpc.
 	header, err := s.b.HeaderByNumber(ctx, number)
 	if header != nil && err == nil {
 		response := s.rpcMarshalHeader(ctx, header)
-		// coreth has no notion of a pending block
-		// if number == rpc.PendingBlockNumber {
-		// 	// Pending header need to nil out a few fields
-		// 	for _, field := range []string{"hash", "nonce", "miner"} {
-		// 		response[field] = nil
-		// 	}
-		// }
+		if number == rpc.PendingBlockNumber {
+			// Pending header need to nil out a few fields
+			for _, field := range []string{"hash", "nonce", "miner"} {
+				response[field] = nil
+			}
+		}
 		return response, err
 	}
 	return nil, err
@@ -666,13 +657,12 @@ func (s *PublicBlockChainAPI) GetBlockByNumber(ctx context.Context, number rpc.B
 	block, err := s.b.BlockByNumber(ctx, number)
 	if block != nil && err == nil {
 		response, err := s.rpcMarshalBlock(ctx, block, true, fullTx)
-		// coreth has no notion of a pending block
-		// if err == nil && number == rpc.PendingBlockNumber {
-		// 	// Pending blocks need to nil out a few fields
-		// 	for _, field := range []string{"hash", "nonce", "miner"} {
-		// 		response[field] = nil
-		// 	}
-		// }
+		if err == nil && number == rpc.PendingBlockNumber {
+			// Pending blocks need to nil out a few fields
+			for _, field := range []string{"hash", "nonce", "miner"} {
+				response[field] = nil
+			}
+		}
 		return response, err
 	}
 	return nil, err
@@ -812,13 +802,13 @@ func (args *CallArgs) ToMessage(globalGasCap uint64) types.Message {
 	return msg
 }
 
-// account indicates the overriding fields of account during the execution of
-// a message call.
+// OverrideAccount indicates the overriding fields of account during the execution
+// of a message call.
 // Note, state and stateDiff can't be specified at the same time. If state is
 // set, message execution will only use the data in the given state. Otherwise
 // if statDiff is set, all diff will be applied first and then execute the call
 // message.
-type account struct {
+type OverrideAccount struct {
 	Nonce     *hexutil.Uint64              `json:"nonce"`
 	Code      *hexutil.Bytes               `json:"code"`
 	Balance   **hexutil.Big                `json:"balance"`
@@ -826,23 +816,15 @@ type account struct {
 	StateDiff *map[common.Hash]common.Hash `json:"stateDiff"`
 }
 
-func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides map[common.Address]account, vmCfg vm.Config, timeout time.Duration, globalGasCap uint64) (*core.ExecutionResult, error) {
-	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+// StateOverride is the collection of overridden accounts.
+type StateOverride map[common.Address]OverrideAccount
 
-	state, header, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
-	if state == nil || err != nil {
-		return nil, err
+// Apply overrides the fields of specified accounts into the given state.
+func (diff *StateOverride) Apply(state *state.StateDB) error {
+	if diff == nil {
+		return nil
 	}
-	// If the request is for the pending block, set the block timestamp to the current time
-	// so that timing assumptions will behave as if a new block were issued.
-	if blkNumber, isNum := blockNrOrHash.Number(); isNum && blkNumber == rpc.PendingBlockNumber {
-		// Override header with a copy to ensure the original header is not modified
-		header = types.CopyHeader(header)
-		header.Time = uint64(time.Now().Unix())
-		header.Number = new(big.Int).Add(header.Number, big.NewInt(1))
-	}
-	// Override the fields of specified contracts before execution.
-	for addr, account := range overrides {
+	for addr, account := range *diff {
 		// Override account nonce.
 		if account.Nonce != nil {
 			state.SetNonce(addr, uint64(*account.Nonce))
@@ -856,7 +838,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 			state.SetBalance(addr, (*big.Int)(*account.Balance))
 		}
 		if account.State != nil && account.StateDiff != nil {
-			return nil, fmt.Errorf("account %s has both 'state' and 'stateDiff'", addr.Hex())
+			return fmt.Errorf("account %s has both 'state' and 'stateDiff'", addr.Hex())
 		}
 		// Replace entire state if caller requires.
 		if account.State != nil {
@@ -868,6 +850,19 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 				state.SetState(addr, key, value)
 			}
 		}
+	}
+	return nil
+}
+
+func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *StateOverride, vmCfg vm.Config, timeout time.Duration, globalGasCap uint64) (*core.ExecutionResult, error) {
+	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+
+	state, header, err := b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	if err := overrides.Apply(state); err != nil {
+		return nil, err
 	}
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered gas, setup a context with a timeout.
@@ -883,7 +878,7 @@ func DoCall(ctx context.Context, b Backend, args CallArgs, blockNrOrHash rpc.Blo
 
 	// Get a new instance of the EVM.
 	msg := args.ToMessage(globalGasCap)
-	evm, vmError, err := b.GetEVM(ctx, msg, state, header, &vmCfg)
+	evm, vmError, err := b.GetEVM(ctx, msg, state, header, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -947,12 +942,8 @@ func (e *revertError) ErrorData() interface{} {
 //
 // Note, this function doesn't make and changes in the state/blockchain and is
 // useful to execute and retrieve values.
-func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *map[common.Address]account) (hexutil.Bytes, error) {
-	var accounts map[common.Address]account
-	if overrides != nil {
-		accounts = *overrides
-	}
-	result, err := DoCall(ctx, s.b, args, blockNrOrHash, accounts, vm.Config{}, 5*time.Second, s.b.RPCGasCap())
+func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *StateOverride) (hexutil.Bytes, error) {
+	result, err := DoCall(ctx, s.b, args, blockNrOrHash, overrides, vm.Config{}, 5*time.Second, s.b.RPCGasCap())
 	if err != nil {
 		return nil, err
 	}
@@ -1163,7 +1154,6 @@ func RPCMarshalHeader(head *types.Header) map[string]interface{} {
 		"timestamp":        hexutil.Uint64(head.Time),
 		"transactionsRoot": head.TxHash,
 		"receiptsRoot":     head.ReceiptHash,
-		"extDataHash":      head.ExtDataHash,
 	}
 }
 
@@ -1173,7 +1163,6 @@ func RPCMarshalHeader(head *types.Header) map[string]interface{} {
 func RPCMarshalBlock(block *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
 	fields := RPCMarshalHeader(block.Header())
 	fields["size"] = hexutil.Uint64(block.Size())
-	fields["blockExtraData"] = hexutil.Bytes(block.ExtData())
 
 	if inclTx {
 		formatTx := func(tx *types.Transaction) (interface{}, error) {
@@ -1380,7 +1369,7 @@ func AccessList(ctx context.Context, b Backend, blockNrOrHash rpc.BlockNumberOrH
 		input = *args.Data
 	}
 	// Retrieve the precompiles since they don't need to be added to the access list
-	precompiles := vm.ActivePrecompiles(b.ChainConfig().AvalancheRules(header.Number, new(big.Int).SetUint64(header.Time)))
+	precompiles := vm.ActivePrecompiles(b.ChainConfig().Rules(header.Number))
 
 	// Create an initial tracer
 	prevTracer := vm.NewAccessListTracer(nil, args.From, to, precompiles)
@@ -1549,10 +1538,6 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 	if err != nil {
 		return nil, nil
 	}
-	header, err := s.b.HeaderByHash(ctx, blockHash)
-	if err != nil {
-		return nil, err
-	}
 	receipts, err := s.b.GetReceipts(ctx, blockHash)
 	if err != nil {
 		return nil, err
@@ -1564,7 +1549,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, ha
 
 	// Derive the sender.
 	bigblock := new(big.Int).SetUint64(blockNumber)
-	signer := types.MakeSigner(s.b.ChainConfig(), bigblock, new(big.Int).SetUint64(header.Time))
+	signer := types.MakeSigner(s.b.ChainConfig(), bigblock)
 	from, _ := types.Sender(signer, tx)
 
 	fields := map[string]interface{}{
@@ -1739,29 +1724,11 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		// Ensure only eip155 signed transactions are submitted if EIP155Required is set.
 		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed over RPC")
 	}
-
-	// Original Code
-	// if err := b.SendTx(ctx, tx); err != nil {
-	// 	return common.Hash{}, err
-	// }
-
-	// Make a callback when a new TX is submitted
-	cb := b.GetBackendAPICallback()
-	if cb.OnTxSubmitted != nil {
-		// We don't send it to ETH tx pool. Instead, make a callback so that it could be sent to
-		// Tendermint mem pool.
-		if err := cb.OnTxSubmitted(tx); err != nil {
-			return common.Hash{}, err
-		}
-	} else {
-		if err := b.SendTx(ctx, tx); err != nil {
-			return common.Hash{}, err
-		}
+	if err := b.SendTx(ctx, tx); err != nil {
+		return common.Hash{}, err
 	}
-
 	// Print a log with full tx details for manual investigations and interventions
-	currentBlock := b.CurrentBlock()
-	signer := types.MakeSigner(b.ChainConfig(), currentBlock.Number(), new(big.Int).SetUint64(currentBlock.Time()))
+	signer := types.MakeSigner(b.ChainConfig(), b.CurrentBlock().Number())
 	from, err := types.Sender(signer, tx)
 	if err != nil {
 		return common.Hash{}, err
@@ -1773,7 +1740,6 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	} else {
 		log.Info("Submitted transaction", "hash", tx.Hash().Hex(), "from", from, "nonce", tx.Nonce(), "recipient", tx.To(), "value", tx.Value())
 	}
-
 	return tx.Hash(), nil
 }
 
@@ -1997,6 +1963,45 @@ func (api *PublicDebugAPI) GetBlockRlp(ctx context.Context, number uint64) (stri
 	return fmt.Sprintf("%x", encoded), nil
 }
 
+// TestSignCliqueBlock fetches the given block number, and attempts to sign it as a clique header with the
+// given address, returning the address of the recovered signature
+//
+// This is a temporary method to debug the externalsigner integration,
+// TODO: Remove this method when the integration is mature
+func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address common.Address, number uint64) (common.Address, error) {
+	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
+	if block == nil {
+		return common.Address{}, fmt.Errorf("block #%d not found", number)
+	}
+	header := block.Header()
+	header.Extra = make([]byte, 32+65)
+	encoded := clique.CliqueRLP(header)
+
+	// Look up the wallet containing the requested signer
+	account := accounts.Account{Address: address}
+	wallet, err := api.b.AccountManager().Find(account)
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	signature, err := wallet.SignData(account, accounts.MimetypeClique, encoded)
+	if err != nil {
+		return common.Address{}, err
+	}
+	sealHash := clique.SealHash(header).Bytes()
+	log.Info("test signing of clique block",
+		"Sealhash", fmt.Sprintf("%x", sealHash),
+		"signature", fmt.Sprintf("%x", signature))
+	pubkey, err := crypto.Ecrecover(sealHash, signature)
+	if err != nil {
+		return common.Address{}, err
+	}
+	var signer common.Address
+	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
+
+	return signer, nil
+}
+
 // PrintBlock retrieves a block and returns its pretty printed form.
 func (api *PublicDebugAPI) PrintBlock(ctx context.Context, number uint64) (string, error) {
 	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
@@ -2006,15 +2011,14 @@ func (api *PublicDebugAPI) PrintBlock(ctx context.Context, number uint64) (strin
 	return spew.Sdump(block), nil
 }
 
-// Original code:
-// // SeedHash retrieves the seed hash of a block.
-// func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string, error) {
-// 	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
-// 	if block == nil {
-// 		return "", fmt.Errorf("block #%d not found", number)
-// 	}
-// 	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
-// }
+// SeedHash retrieves the seed hash of a block.
+func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string, error) {
+	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
+	if block == nil {
+		return "", fmt.Errorf("block #%d not found", number)
+	}
+	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
+}
 
 // PrivateDebugAPI is the collection of Ethereum APIs exposed over the private
 // debugging endpoint.
@@ -2051,15 +2055,13 @@ func (api *PrivateDebugAPI) ChaindbCompact() error {
 	return nil
 }
 
-// Original code:
-// // SetHead rewinds the head of the blockchain to a previous block.
-// func (api *PrivateDebugAPI) SetHead(number hexutil.Uint64) {
-// 	api.b.SetHead(uint64(number))
-// }
+// SetHead rewinds the head of the blockchain to a previous block.
+func (api *PrivateDebugAPI) SetHead(number hexutil.Uint64) {
+	api.b.SetHead(uint64(number))
+}
 
 // PublicNetAPI offers network related RPC methods
 type PublicNetAPI struct {
-	// net            *p2p.Server
 	networkVersion uint64
 }
 
@@ -2075,7 +2077,6 @@ func (s *PublicNetAPI) Listening() bool {
 
 // PeerCount returns the number of connected peers
 func (s *PublicNetAPI) PeerCount() hexutil.Uint {
-	// Original code:
 	// return hexutil.Uint(s.net.PeerCount())
 	return hexutil.Uint(0)
 }

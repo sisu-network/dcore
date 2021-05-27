@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2018 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -88,7 +78,6 @@ func TestWebsocketOriginCheck(t *testing.T) {
 }
 
 // This test checks whether calls exceeding the request size limit are rejected.
-/*
 func TestWebsocketLargeCall(t *testing.T) {
 	t.Parallel()
 
@@ -123,7 +112,6 @@ func TestWebsocketLargeCall(t *testing.T) {
 		t.Fatal("no error for too large call")
 	}
 }
-*/
 
 // This test checks that client handles WebSocket ping frames correctly.
 func TestClientWebsocketPing(t *testing.T) {
@@ -176,7 +164,7 @@ func TestClientWebsocketPing(t *testing.T) {
 // This checks that the websocket transport can deal with large messages.
 func TestClientWebsocketLargeMessage(t *testing.T) {
 	var (
-		srv     = NewServer(0)
+		srv     = NewServer()
 		httpsrv = httptest.NewServer(srv.WebsocketHandler(nil))
 		wsURL   = "ws:" + strings.TrimPrefix(httpsrv.URL, "http:")
 	)

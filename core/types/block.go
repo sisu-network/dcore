@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2014 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -29,10 +19,12 @@ package types
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math/big"
 	"reflect"
 	"sync/atomic"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -40,9 +32,8 @@ import (
 )
 
 var (
-	EmptyRootHash    = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
-	EmptyUncleHash   = rlpHash([]*Header(nil))
-	EmptyExtDataHash = rlpHash([]byte(nil))
+	EmptyRootHash  = common.HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
+	EmptyUncleHash = rlpHash([]*Header(nil))
 )
 
 // A BlockNonce is a 64-bit hash which proves (combined with the
@@ -91,7 +82,6 @@ type Header struct {
 	Extra       []byte         `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash    `json:"mixHash"`
 	Nonce       BlockNonce     `json:"nonce"`
-	ExtDataHash common.Hash    `json:"extDataHash"      gencodec:"required"`
 }
 
 // field type overrides for gencodec
@@ -119,26 +109,24 @@ func (h *Header) Size() common.StorageSize {
 	return headerSize + common.StorageSize(len(h.Extra)+(h.Difficulty.BitLen()+h.Number.BitLen())/8)
 }
 
-// Orignal code: (has been moved to syntacticVerify in plugin/evm/block.go)
-// // SanityCheck checks a few basic things -- these checks are way beyond what
-// // any 'sane' production values should hold, and can mainly be used to prevent
-// // that the unbounded fields are stuffed with junk data to add processing
-// // overhead
-// func (h *Header) SanityCheck() error {
-// 	if h.Number != nil && !h.Number.IsUint64() {
-// 		return fmt.Errorf("too large block number: bitlen %d", h.Number.BitLen())
-// 	}
-// 	if h.Difficulty != nil {
-// 		if diffLen := h.Difficulty.BitLen(); diffLen > 80 {
-// 			return fmt.Errorf("too large block difficulty: bitlen %d", diffLen)
-// 		}
-// 	}
-// 	// TODO: should assert Difficulty != nil
-// 	if eLen := len(h.Extra); eLen > 100*1024 {
-// 		return fmt.Errorf("too large block extradata: size %d", eLen)
-// 	}
-// 	return nil
-// }
+// SanityCheck checks a few basic things -- these checks are way beyond what
+// any 'sane' production values should hold, and can mainly be used to prevent
+// that the unbounded fields are stuffed with junk data to add processing
+// overhead
+func (h *Header) SanityCheck() error {
+	if h.Number != nil && !h.Number.IsUint64() {
+		return fmt.Errorf("too large block number: bitlen %d", h.Number.BitLen())
+	}
+	if h.Difficulty != nil {
+		if diffLen := h.Difficulty.BitLen(); diffLen > 80 {
+			return fmt.Errorf("too large block difficulty: bitlen %d", diffLen)
+		}
+	}
+	if eLen := len(h.Extra); eLen > 100*1024 {
+		return fmt.Errorf("too large block extradata: size %d", eLen)
+	}
+	return nil
+}
 
 // EmptyBody returns true if there is no additional 'body' to complete the header
 // that is: no transactions and no uncles.
@@ -156,8 +144,6 @@ func (h *Header) EmptyReceipts() bool {
 type Body struct {
 	Transactions []*Transaction
 	Uncles       []*Header
-	Version      uint32
-	ExtData      *[]byte `rlp:"nil"`
 }
 
 // Block represents an entire block in the Ethereum blockchain.
@@ -165,10 +151,6 @@ type Block struct {
 	header       *Header
 	uncles       []*Header
 	transactions Transactions
-
-	// Coreth specific data structures to support atomic transactions
-	version uint32
-	extdata *[]byte
 
 	// caches
 	hash atomic.Value
@@ -178,45 +160,18 @@ type Block struct {
 	// of the chain up to and including the block.
 	td *big.Int
 
-	// Original Code:
-	// // These fields are used by package eth to track
-	// // inter-peer block relay.
-	// ReceivedAt   time.Time
-	// ReceivedFrom interface{}
+	// These fields are used by package eth to track
+	// inter-peer block relay.
+	ReceivedAt   time.Time
+	ReceivedFrom interface{}
 }
-
-// DeprecatedTd is an old relic for extracting the TD of a block. It is in the
-// code solely to facilitate upgrading the database from the old format to the
-// new, after which it should be deleted. Do not use!
-func (b *Block) DeprecatedTd() *big.Int {
-	return b.td
-}
-
-// Original Code:
-// // [deprecated by eth/63]
-// // StorageBlock defines the RLP encoding of a Block stored in the
-// // state database. The StorageBlock encoding contains fields that
-// // would otherwise need to be recomputed.
-// type StorageBlock Block
 
 // "external" block encoding. used for eth protocol, etc.
 type extblock struct {
-	Header  *Header
-	Txs     []*Transaction
-	Uncles  []*Header
-	Version uint32
-	ExtData *[]byte `rlp:"nil"`
+	Header *Header
+	Txs    []*Transaction
+	Uncles []*Header
 }
-
-// Original Code:
-// // [deprecated by eth/63]
-// // "storage" block encoding. used for database.
-// type storageblock struct {
-// 	Header *Header
-// 	Txs    []*Transaction
-// 	Uncles []*Header
-// 	TD     *big.Int
-// }
 
 // NewBlock creates a new block. The input data is copied,
 // changes to header and to the field values will not affect the
@@ -225,10 +180,7 @@ type extblock struct {
 // The values of TxHash, UncleHash, ReceiptHash and Bloom in header
 // are ignored and set to values derived from the given txs, uncles
 // and receipts.
-func NewBlock(
-	header *Header, txs []*Transaction, uncles []*Header, receipts []*Receipt,
-	hasher TrieHasher, extdata []byte, recalc bool,
-) *Block {
+func NewBlock(header *Header, txs []*Transaction, uncles []*Header, receipts []*Receipt, hasher TrieHasher) *Block {
 	b := &Block{header: CopyHeader(header), td: new(big.Int)}
 
 	// TODO: panic if len(txs) != len(receipts)
@@ -257,7 +209,6 @@ func NewBlock(
 		}
 	}
 
-	b.setExtData(extdata, recalc)
 	return b
 }
 
@@ -292,64 +243,19 @@ func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	if err := s.Decode(&eb); err != nil {
 		return err
 	}
-	b.header, b.uncles, b.transactions, b.version, b.extdata = eb.Header, eb.Uncles, eb.Txs, eb.Version, eb.ExtData
+	b.header, b.uncles, b.transactions = eb.Header, eb.Uncles, eb.Txs
 	b.size.Store(common.StorageSize(rlp.ListSize(size)))
 	return nil
 }
 
-func (b *Block) setExtDataHelper(data *[]byte, recalc bool) {
-	if data == nil {
-		b.setExtData(nil, recalc)
-		return
-	}
-	b.setExtData(*data, recalc)
-}
-
-func (b *Block) setExtData(data []byte, recalc bool) {
-	_data := make([]byte, len(data))
-	b.extdata = &_data
-	copy(*b.extdata, data)
-	if recalc {
-		b.header.ExtDataHash = CalcExtDataHash(*b.extdata)
-	}
-}
-
-func (b *Block) ExtData() []byte {
-	if b.extdata == nil {
-		return nil
-	}
-	return *b.extdata
-}
-
-func (b *Block) SetVersion(ver uint32) {
-	b.version = ver
-}
-
-func (b *Block) Version() uint32 {
-	return b.version
-}
-
-// EncodeRLP serializes b into an extended format.
+// EncodeRLP serializes b into the Ethereum RLP block format.
 func (b *Block) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, extblock{
-		Header:  b.header,
-		Txs:     b.transactions,
-		Uncles:  b.uncles,
-		Version: b.version,
-		ExtData: b.extdata,
+		Header: b.header,
+		Txs:    b.transactions,
+		Uncles: b.uncles,
 	})
 }
-
-// Original Code:
-// // [deprecated by eth/63]
-// func (b *StorageBlock) DecodeRLP(s *rlp.Stream) error {
-// 	var sb storageblock
-// 	if err := s.Decode(&sb); err != nil {
-// 		return err
-// 	}
-// 	b.header, b.uncles, b.transactions, b.td = sb.Header, sb.Uncles, sb.Txs, sb.TD
-// 	return nil
-// }
 
 // TODO: copies
 
@@ -386,7 +292,7 @@ func (b *Block) Extra() []byte            { return common.CopyBytes(b.header.Ext
 func (b *Block) Header() *Header { return CopyHeader(b.header) }
 
 // Body returns the non-header content of the block.
-func (b *Block) Body() *Body { return &Body{b.transactions, b.uncles, b.version, b.extdata} }
+func (b *Block) Body() *Body { return &Body{b.transactions, b.uncles} }
 
 // Size returns the true RLP encoded storage size of the block, either by encoding
 // and returning it, or returning a previsouly cached value.
@@ -400,25 +306,17 @@ func (b *Block) Size() common.StorageSize {
 	return common.StorageSize(c)
 }
 
-// Original code: (has been moved to syntacticVerify in plugin/evm/block.go)
-// // SanityCheck can be used to prevent that unbounded fields are
-// // stuffed with junk data to add processing overhead
-// func (b *Block) SanityCheck() error {
-// 	return b.header.SanityCheck()
-// }
+// SanityCheck can be used to prevent that unbounded fields are
+// stuffed with junk data to add processing overhead
+func (b *Block) SanityCheck() error {
+	return b.header.SanityCheck()
+}
 
 type writeCounter common.StorageSize
 
 func (c *writeCounter) Write(b []byte) (int, error) {
 	*c += writeCounter(len(b))
 	return len(b), nil
-}
-
-func CalcExtDataHash(extdata []byte) common.Hash {
-	if len(extdata) == 0 {
-		return EmptyExtDataHash
-	}
-	return rlpHash(extdata)
 }
 
 func CalcUncleHash(uncles []*Header) common.Hash {
@@ -441,18 +339,16 @@ func (b *Block) WithSeal(header *Header) *Block {
 }
 
 // WithBody returns a new block with the given transaction and uncle contents.
-func (b *Block) WithBody(transactions []*Transaction, uncles []*Header, version uint32, extdata *[]byte) *Block {
+func (b *Block) WithBody(transactions []*Transaction, uncles []*Header) *Block {
 	block := &Block{
 		header:       CopyHeader(b.header),
 		transactions: make([]*Transaction, len(transactions)),
 		uncles:       make([]*Header, len(uncles)),
-		version:      version,
 	}
 	copy(block.transactions, transactions)
 	for i := range uncles {
 		block.uncles[i] = CopyHeader(uncles[i])
 	}
-	block.setExtDataHelper(extdata, false)
 	return block
 }
 

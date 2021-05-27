@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2014 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -28,15 +18,11 @@ package core
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/sisu-network/dcore/core/types"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
 type NewTxsEvent struct{ Txs []*types.Transaction }
-
-// NewTxPoolHeadEvent is posted when the pool head is updated.
-// TODO: remove unnecessary event
-type NewTxPoolHeadEvent struct{ Block *types.Block }
 
 // NewMinedBlockEvent is posted when a block has been imported.
 type NewMinedBlockEvent struct{ Block *types.Block }

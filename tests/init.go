@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -31,7 +21,7 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // Forks table defines supported forks and their chain config.
@@ -163,30 +153,19 @@ var Forks = map[string]*params.ChainConfig{
 		IstanbulBlock:       big.NewInt(0),
 		YoloV3Block:         big.NewInt(0),
 	},
-	"ApricotPhase1": {
-		ChainID:                     big.NewInt(1),
-		HomesteadBlock:              big.NewInt(0),
-		EIP150Block:                 big.NewInt(0),
-		EIP155Block:                 big.NewInt(0),
-		EIP158Block:                 big.NewInt(0),
-		ByzantiumBlock:              big.NewInt(0),
-		ConstantinopleBlock:         big.NewInt(0),
-		PetersburgBlock:             big.NewInt(0),
-		IstanbulBlock:               big.NewInt(0),
-		ApricotPhase1BlockTimestamp: big.NewInt(0),
-	},
-	"ApricotPhase2": {
-		ChainID:                     big.NewInt(1),
-		HomesteadBlock:              big.NewInt(0),
-		EIP150Block:                 big.NewInt(0),
-		EIP155Block:                 big.NewInt(0),
-		EIP158Block:                 big.NewInt(0),
-		ByzantiumBlock:              big.NewInt(0),
-		ConstantinopleBlock:         big.NewInt(0),
-		PetersburgBlock:             big.NewInt(0),
-		IstanbulBlock:               big.NewInt(0),
-		ApricotPhase1BlockTimestamp: big.NewInt(0),
-		ApricotPhase2BlockTimestamp: big.NewInt(0),
+	// This specification is subject to change, but is for now identical to YOLOv3
+	// for cross-client testing purposes
+	"Berlin": {
+		ChainID:             big.NewInt(1),
+		HomesteadBlock:      big.NewInt(0),
+		EIP150Block:         big.NewInt(0),
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(0),
+		PetersburgBlock:     big.NewInt(0),
+		IstanbulBlock:       big.NewInt(0),
+		BerlinBlock:         big.NewInt(0),
 	},
 }
 

@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2019 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -35,8 +25,8 @@ import (
 
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/sisu-network/dcore/core/rawdb"
 )
 
 // randomHash generates a random blob of data and returns it as a hash.
@@ -127,10 +117,10 @@ func TestDiskLayerExternalInvalidationFullFlatten(t *testing.T) {
 	}
 	// Since the base layer was modified, ensure that data retrieval on the external reference fail
 	if acc, err := ref.Account(common.HexToHash("0x01")); err != ErrSnapshotStale {
-		t.Errorf("stale reference returned account: %v (err: %v)", acc, err)
+		t.Errorf("stale reference returned account: %#x (err: %v)", acc, err)
 	}
 	if slot, err := ref.Storage(common.HexToHash("0xa1"), common.HexToHash("0xb1")); err != ErrSnapshotStale {
-		t.Errorf("stale reference returned storage slot: %v (err: %v)", slot, err)
+		t.Errorf("stale reference returned storage slot: %#x (err: %v)", slot, err)
 	}
 	if n := len(snaps.layers); n != 1 {
 		t.Errorf("post-cap layer count mismatch: have %d, want %d", n, 1)
@@ -177,7 +167,7 @@ func TestDiskLayerExternalInvalidationPartialFlatten(t *testing.T) {
 	}
 	// Since the base layer was modified, ensure that data retrievald on the external reference fail
 	if acc, err := ref.Account(common.HexToHash("0x01")); err != ErrSnapshotStale {
-		t.Errorf("stale reference returned account: %v (err: %v)", acc, err)
+		t.Errorf("stale reference returned account: %#x (err: %v)", acc, err)
 	}
 	if slot, err := ref.Storage(common.HexToHash("0xa1"), common.HexToHash("0xb1")); err != ErrSnapshotStale {
 		t.Errorf("stale reference returned storage slot: %#x (err: %v)", slot, err)
@@ -235,7 +225,7 @@ func TestDiffLayerExternalInvalidationPartialFlatten(t *testing.T) {
 	}
 	// Since the accumulator diff layer was modified, ensure that data retrievald on the external reference fail
 	if acc, err := ref.Account(common.HexToHash("0x01")); err != ErrSnapshotStale {
-		t.Errorf("stale reference returned account: %v (err: %v)", acc, err)
+		t.Errorf("stale reference returned account: %#x (err: %v)", acc, err)
 	}
 	if slot, err := ref.Storage(common.HexToHash("0xa1"), common.HexToHash("0xb1")); err != ErrSnapshotStale {
 		t.Errorf("stale reference returned storage slot: %#x (err: %v)", slot, err)
@@ -284,7 +274,7 @@ func TestPostCapBasicDataAccess(t *testing.T) {
 	// shouldErr checks that an account access errors as expected
 	shouldErr := func(layer *diffLayer, key string) error {
 		if data, err := layer.Account(common.HexToHash(key)); err == nil {
-			return fmt.Errorf("expected error, got data %v", data)
+			return fmt.Errorf("expected error, got data %x", data)
 		}
 		return nil
 	}

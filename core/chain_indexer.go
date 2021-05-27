@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2017 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -35,11 +25,11 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/sisu-network/dcore/core/rawdb"
-	"github.com/sisu-network/dcore/core/types"
 )
 
 // ChainIndexerBackend defines the methods needed to process chain segments in
@@ -411,7 +401,7 @@ func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (com
 		}
 		header := rawdb.ReadHeader(c.chainDb, hash, number)
 		if header == nil {
-			return common.Hash{}, fmt.Errorf("block #%d [%x…] not found", number, hash[:4])
+			return common.Hash{}, fmt.Errorf("block #%d [%x..] not found", number, hash[:4])
 		} else if header.ParentHash != lastHead {
 			return common.Hash{}, fmt.Errorf("chain reorged during section processing")
 		}

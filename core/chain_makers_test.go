@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -30,12 +20,12 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/consensus/ethash"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/sisu-network/dcore/consensus/dummy"
-	"github.com/sisu-network/dcore/core/rawdb"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/core/vm"
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 func ExampleGenerateChain() {
@@ -56,11 +46,11 @@ func ExampleGenerateChain() {
 	}
 	genesis := gspec.MustCommit(db)
 
-	// This call generates a chain of 3 blocks. The function runs for
+	// This call generates a chain of 5 blocks. The function runs for
 	// each block and adds different features to gen based on the
 	// block index.
 	signer := types.HomesteadSigner{}
-	chain, _ := GenerateChain(gspec.Config, genesis, dummy.NewDummyEngine(new(dummy.ConsensusCallbacks)), db, 3, func(i int, gen *BlockGen) {
+	chain, _ := GenerateChain(gspec.Config, genesis, ethash.NewFaker(), db, 5, func(i int, gen *BlockGen) {
 		switch i {
 		case 0:
 			// In block 1, addr1 sends addr2 some ether.
@@ -70,15 +60,26 @@ func ExampleGenerateChain() {
 			// In block 2, addr1 sends some more ether to addr2.
 			// addr2 passes it on to addr3.
 			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil), signer, key1)
-			gen.AddTx(tx1)
-		case 2:
 			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil), signer, key2)
+			gen.AddTx(tx1)
 			gen.AddTx(tx2)
+		case 2:
+			// Block 3 is empty but was mined by addr3.
+			gen.SetCoinbase(addr3)
+			gen.SetExtra([]byte("yeehaw"))
+		case 3:
+			// Block 4 includes blocks 2 and 3 as uncle headers (with modified extra data).
+			b2 := gen.PrevBlock(1).Header()
+			b2.Extra = []byte("foo")
+			gen.AddUncle(b2)
+			b3 := gen.PrevBlock(2).Header()
+			b3.Extra = []byte("foo")
+			gen.AddUncle(b3)
 		}
 	})
 
 	// Import the chain. This runs all block validation rules.
-	blockchain, _ := NewBlockChain(db, nil, gspec.Config, dummy.NewDummyEngine(new(dummy.ConsensusCallbacks)), vm.Config{}, nil, nil, true)
+	blockchain, _ := NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
 	defer blockchain.Stop()
 
 	if i, err := blockchain.InsertChain(chain); err != nil {
@@ -91,12 +92,9 @@ func ExampleGenerateChain() {
 	fmt.Println("balance of addr1:", state.GetBalance(addr1))
 	fmt.Println("balance of addr2:", state.GetBalance(addr2))
 	fmt.Println("balance of addr3:", state.GetBalance(addr3))
-	// Expected output has been modified since uncle blocks and block rewards have
-	// been removed from the original test.
-
 	// Output:
-	// last block: #3
+	// last block: #5
 	// balance of addr1: 989000
 	// balance of addr2: 10000
-	// balance of addr3: 1000
+	// balance of addr3: 19687500000000001000
 }

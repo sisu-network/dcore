@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -31,13 +21,13 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/consensus/misc"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/sisu-network/dcore/consensus"
-	"github.com/sisu-network/dcore/consensus/misc"
-	"github.com/sisu-network/dcore/core/state"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/core/vm"
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // BlockGen creates blocks for testing.
@@ -208,7 +198,7 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 	chainreader := &fakeChainReader{config: config}
 	genblock := func(i int, parent *types.Block, statedb *state.StateDB) (*types.Block, types.Receipts) {
 		b := &BlockGen{i: i, chain: blocks, parent: parent, statedb: statedb, config: config, engine: engine}
-		b.header = makeHeader(chainreader, config, parent, statedb, b.engine)
+		b.header = makeHeader(chainreader, parent, statedb, b.engine)
 
 		// Mutate the state and block according to any hard-fork specs
 		if daoBlock := config.DAOForkBlock; daoBlock != nil {
@@ -255,19 +245,12 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 	return blocks, receipts
 }
 
-func makeHeader(chain consensus.ChainReader, config *params.ChainConfig, parent *types.Block, state *state.StateDB, engine consensus.Engine) *types.Header {
+func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.StateDB, engine consensus.Engine) *types.Header {
 	var time uint64
 	if parent.Time() == 0 {
 		time = 10
 	} else {
 		time = parent.Time() + 10 // block time is fixed at 10 seconds
-	}
-
-	var gasLimit uint64
-	if config.IsApricotPhase1(new(big.Int).SetUint64(time)) {
-		gasLimit = params.ApricotPhase1GasLimit
-	} else {
-		gasLimit = CalcGasLimit(parent, parent.GasLimit(), parent.GasLimit())
 	}
 
 	return &types.Header{
@@ -280,31 +263,29 @@ func makeHeader(chain consensus.ChainReader, config *params.ChainConfig, parent 
 			Difficulty: parent.Difficulty(),
 			UncleHash:  parent.UncleHash(),
 		}),
-		GasLimit: gasLimit,
+		GasLimit: CalcGasLimit(parent, parent.GasLimit(), parent.GasLimit()),
 		Number:   new(big.Int).Add(parent.Number(), common.Big1),
 		Time:     time,
 	}
 }
 
-// Original code:
-// // makeHeaderChain creates a deterministic chain of headers rooted at parent.
-// func makeHeaderChain(parent *types.Header, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Header {
-// 	blocks := makeBlockChain(types.NewBlockWithHeader(parent), n, engine, db, seed)
-// 	headers := make([]*types.Header, len(blocks))
-// 	for i, block := range blocks {
-// 		headers[i] = block.Header()
-// 	}
-// 	return headers
-// }
+// makeHeaderChain creates a deterministic chain of headers rooted at parent.
+func makeHeaderChain(parent *types.Header, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Header {
+	blocks := makeBlockChain(types.NewBlockWithHeader(parent), n, engine, db, seed)
+	headers := make([]*types.Header, len(blocks))
+	for i, block := range blocks {
+		headers[i] = block.Header()
+	}
+	return headers
+}
 
-// Original code:
-// // makeBlockChain creates a deterministic chain of blocks rooted at parent.
-// func makeBlockChain(parent *types.Block, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Block {
-// 	blocks, _ := GenerateChain(params.TestChainConfig, parent, engine, db, n, func(i int, b *BlockGen) {
-// 		b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
-// 	})
-// 	return blocks
-// }
+// makeBlockChain creates a deterministic chain of blocks rooted at parent.
+func makeBlockChain(parent *types.Block, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Block {
+	blocks, _ := GenerateChain(params.TestChainConfig, parent, engine, db, n, func(i int, b *BlockGen) {
+		b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
+	})
+	return blocks
+}
 
 type fakeChainReader struct {
 	config *params.ChainConfig

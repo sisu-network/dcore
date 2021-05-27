@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -33,8 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/sisu-network/dcore/internal/debug"
-	"github.com/sisu-network/dcore/rpc"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 var (
@@ -47,16 +36,16 @@ func (n *Node) apis() []rpc.API {
 		{
 			Namespace: "admin",
 			Version:   "1.0",
-			Service:   &privateAdminAPI{},
+			Service:   &privateAdminAPI{n},
 		}, {
 			Namespace: "admin",
 			Version:   "1.0",
-			Service:   &publicAdminAPI{},
+			Service:   &publicAdminAPI{n},
 			Public:    true,
-		}, {
-			Namespace: "debug",
-			Version:   "1.0",
-			Service:   debug.Handler,
+			// }, {
+			// 	Namespace: "debug",
+			// 	Version:   "1.0",
+			// 	Service:   debug.Handler,
 		}, {
 			Namespace: "web3",
 			Version:   "1.0",
@@ -69,14 +58,13 @@ func (n *Node) apis() []rpc.API {
 // privateAdminAPI is the collection of administrative API methods exposed only
 // over a secure RPC channel.
 type privateAdminAPI struct {
-	// node *Node // Node interfaced by this API
+	node *Node // Node interfaced by this API
 }
 
 // AddPeer requests connecting to a remote node, and also maintaining the new
 // connection at all times, even reconnecting if it is lost.
 func (api *privateAdminAPI) AddPeer(url string) (bool, error) {
-	// Original code:
-	// // Make sure the server is running, fail otherwise
+	// Make sure the server is running, fail otherwise
 	// server := api.node.Server()
 	// if server == nil {
 	// 	return false, ErrNodeStopped
@@ -88,12 +76,12 @@ func (api *privateAdminAPI) AddPeer(url string) (bool, error) {
 	// }
 	// server.AddPeer(node)
 	// return true, nil
+
 	return false, errNotSupported
 }
 
 // RemovePeer disconnects from a remote node if the connection exists
 func (api *privateAdminAPI) RemovePeer(url string) (bool, error) {
-	// Original code:
 	// // Make sure the server is running, fail otherwise
 	// server := api.node.Server()
 	// if server == nil {
@@ -106,12 +94,12 @@ func (api *privateAdminAPI) RemovePeer(url string) (bool, error) {
 	// }
 	// server.RemovePeer(node)
 	// return true, nil
+
 	return false, errNotSupported
 }
 
 // AddTrustedPeer allows a remote node to always connect, even if slots are full
 func (api *privateAdminAPI) AddTrustedPeer(url string) (bool, error) {
-	// Original code:
 	// // Make sure the server is running, fail otherwise
 	// server := api.node.Server()
 	// if server == nil {
@@ -123,13 +111,13 @@ func (api *privateAdminAPI) AddTrustedPeer(url string) (bool, error) {
 	// }
 	// server.AddTrustedPeer(node)
 	// return true, nil
+
 	return false, errNotSupported
 }
 
 // RemoveTrustedPeer removes a remote node from the trusted peer set, but it
 // does not disconnect it automatically.
 func (api *privateAdminAPI) RemoveTrustedPeer(url string) (bool, error) {
-	// Original code:
 	// // Make sure the server is running, fail otherwise
 	// server := api.node.Server()
 	// if server == nil {
@@ -141,6 +129,7 @@ func (api *privateAdminAPI) RemoveTrustedPeer(url string) (bool, error) {
 	// }
 	// server.RemoveTrustedPeer(node)
 	// return true, nil
+
 	return false, errNotSupported
 }
 
@@ -148,6 +137,7 @@ func (api *privateAdminAPI) RemoveTrustedPeer(url string) (bool, error) {
 // node's p2p.Server
 func (api *privateAdminAPI) PeerEvents(ctx context.Context) (*rpc.Subscription, error) {
 	// Original code:
+
 	// // Make sure the server is running, fail otherwise
 	// server := api.node.Server()
 	// if server == nil {
@@ -180,44 +170,171 @@ func (api *privateAdminAPI) PeerEvents(ctx context.Context) (*rpc.Subscription, 
 	// 	}
 	// }()
 	// return rpcSub, nil
+
 	return nil, errNotSupported
 }
+
+// // StartHTTP starts the HTTP RPC API server.
+// func (api *privateAdminAPI) StartHTTP(host *string, port *int, cors *string, apis *string, vhosts *string) (bool, error) {
+// 	api.node.lock.Lock()
+// 	defer api.node.lock.Unlock()
+
+// 	// Determine host and port.
+// 	if host == nil {
+// 		h := DefaultHTTPHost
+// 		if api.node.config.HTTPHost != "" {
+// 			h = api.node.config.HTTPHost
+// 		}
+// 		host = &h
+// 	}
+// 	if port == nil {
+// 		port = &api.node.config.HTTPPort
+// 	}
+
+// 	// Determine config.
+// 	config := httpConfig{
+// 		CorsAllowedOrigins: api.node.config.HTTPCors,
+// 		Vhosts:             api.node.config.HTTPVirtualHosts,
+// 		Modules:            api.node.config.HTTPModules,
+// 	}
+// 	if cors != nil {
+// 		config.CorsAllowedOrigins = nil
+// 		for _, origin := range strings.Split(*cors, ",") {
+// 			config.CorsAllowedOrigins = append(config.CorsAllowedOrigins, strings.TrimSpace(origin))
+// 		}
+// 	}
+// 	if vhosts != nil {
+// 		config.Vhosts = nil
+// 		for _, vhost := range strings.Split(*host, ",") {
+// 			config.Vhosts = append(config.Vhosts, strings.TrimSpace(vhost))
+// 		}
+// 	}
+// 	if apis != nil {
+// 		config.Modules = nil
+// 		for _, m := range strings.Split(*apis, ",") {
+// 			config.Modules = append(config.Modules, strings.TrimSpace(m))
+// 		}
+// 	}
+
+// 	if err := api.node.http.setListenAddr(*host, *port); err != nil {
+// 		return false, err
+// 	}
+// 	if err := api.node.http.enableRPC(api.node.rpcAPIs, config); err != nil {
+// 		return false, err
+// 	}
+// 	if err := api.node.http.start(); err != nil {
+// 		return false, err
+// 	}
+// 	return true, nil
+// }
+
+// // StartRPC starts the HTTP RPC API server.
+// // This method is deprecated. Use StartHTTP instead.
+// func (api *privateAdminAPI) StartRPC(host *string, port *int, cors *string, apis *string, vhosts *string) (bool, error) {
+// 	log.Warn("Deprecation warning", "method", "admin.StartRPC", "use-instead", "admin.StartHTTP")
+// 	return api.StartHTTP(host, port, cors, apis, vhosts)
+// }
+
+// // StopHTTP shuts down the HTTP server.
+// func (api *privateAdminAPI) StopHTTP() (bool, error) {
+// 	api.node.http.stop()
+// 	return true, nil
+// }
+
+// // StopRPC shuts down the HTTP server.
+// // This method is deprecated. Use StopHTTP instead.
+// func (api *privateAdminAPI) StopRPC() (bool, error) {
+// 	log.Warn("Deprecation warning", "method", "admin.StopRPC", "use-instead", "admin.StopHTTP")
+// 	return api.StopHTTP()
+// }
+
+// // StartWS starts the websocket RPC API server.
+// func (api *privateAdminAPI) StartWS(host *string, port *int, allowedOrigins *string, apis *string) (bool, error) {
+// 	api.node.lock.Lock()
+// 	defer api.node.lock.Unlock()
+
+// 	// Determine host and port.
+// 	if host == nil {
+// 		h := DefaultWSHost
+// 		if api.node.config.WSHost != "" {
+// 			h = api.node.config.WSHost
+// 		}
+// 		host = &h
+// 	}
+// 	if port == nil {
+// 		port = &api.node.config.WSPort
+// 	}
+
+// 	// Determine config.
+// 	config := wsConfig{
+// 		Modules: api.node.config.WSModules,
+// 		Origins: api.node.config.WSOrigins,
+// 		// ExposeAll: api.node.config.WSExposeAll,
+// 	}
+// 	if apis != nil {
+// 		config.Modules = nil
+// 		for _, m := range strings.Split(*apis, ",") {
+// 			config.Modules = append(config.Modules, strings.TrimSpace(m))
+// 		}
+// 	}
+// 	if allowedOrigins != nil {
+// 		config.Origins = nil
+// 		for _, origin := range strings.Split(*allowedOrigins, ",") {
+// 			config.Origins = append(config.Origins, strings.TrimSpace(origin))
+// 		}
+// 	}
+
+// 	// Enable WebSocket on the server.
+// 	server := api.node.wsServerForPort(*port)
+// 	if err := server.setListenAddr(*host, *port); err != nil {
+// 		return false, err
+// 	}
+// 	if err := server.enableWS(api.node.rpcAPIs, config); err != nil {
+// 		return false, err
+// 	}
+// 	if err := server.start(); err != nil {
+// 		return false, err
+// 	}
+// 	api.node.http.log.Info("WebSocket endpoint opened", "url", api.node.WSEndpoint())
+// 	return true, nil
+// }
+
+// // StopWS terminates all WebSocket servers.
+// func (api *privateAdminAPI) StopWS() (bool, error) {
+// 	api.node.http.stopWS()
+// 	api.node.ws.stop()
+// 	return true, nil
+// }
 
 // publicAdminAPI is the collection of administrative API methods exposed over
 // both secure and unsecure RPC channels.
 type publicAdminAPI struct {
-	// node *Node // Node interfaced by this API
+	node *Node // Node interfaced by this API
 }
 
 // Peers retrieves all the information we know about each individual peer at the
 // protocol granularity.
 func (api *publicAdminAPI) Peers() ([]*p2p.PeerInfo, error) {
-	// Original code:
-	// server := api.node.Server()
-	// if server == nil {
-	// 	return nil, ErrNodeStopped
-	// }
-	// return server.PeersInfo(), nil
-	return nil, errNotSupported
+	server := api.node.Server()
+	if server == nil {
+		return nil, ErrNodeStopped
+	}
+	return server.PeersInfo(), nil
 }
 
 // NodeInfo retrieves all the information we know about the host node at the
 // protocol granularity.
 func (api *publicAdminAPI) NodeInfo() (*p2p.NodeInfo, error) {
-	// Original code:
-	// server := api.node.Server()
-	// if server == nil {
-	// 	return nil, ErrNodeStopped
-	// }
-	// return server.NodeInfo(), nil
-	return nil, errNotSupported
+	server := api.node.Server()
+	if server == nil {
+		return nil, ErrNodeStopped
+	}
+	return server.NodeInfo(), nil
 }
 
 // Datadir retrieves the current data directory the node is using.
 func (api *publicAdminAPI) Datadir() string {
-	// Original code:
-	// return api.node.DataDir()
-	return ""
+	return api.node.DataDir()
 }
 
 // publicWeb3API offers helper utils
@@ -227,9 +344,7 @@ type publicWeb3API struct {
 
 // ClientVersion returns the node name
 func (s *publicWeb3API) ClientVersion() string {
-	// Original code:
-	// return s.stack.Server().Name
-	return s.stack.config.CorethVersion
+	return s.stack.Server().Name
 }
 
 // Sha3 applies the ethereum sha3 implementation on the input.

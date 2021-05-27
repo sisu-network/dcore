@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -30,10 +20,9 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/sisu-network/dcore/consensus"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/core/vm"
-	//"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 )
 
 // ChainContext supports retrieving headers and consensus parameters from the
@@ -56,16 +45,14 @@ func NewEVMBlockContext(header *types.Header, chain ChainContext, author *common
 		beneficiary = *author
 	}
 	return vm.BlockContext{
-		CanTransfer:       CanTransfer,
-		CanTransferMC:     CanTransferMC,
-		Transfer:          Transfer,
-		TransferMultiCoin: TransferMultiCoin,
-		GetHash:           GetHashFn(header, chain),
-		Coinbase:          beneficiary,
-		BlockNumber:       new(big.Int).Set(header.Number),
-		Time:              new(big.Int).SetUint64(header.Time),
-		Difficulty:        new(big.Int).Set(header.Difficulty),
-		GasLimit:          header.GasLimit,
+		CanTransfer: CanTransfer,
+		Transfer:    Transfer,
+		GetHash:     GetHashFn(header, chain),
+		Coinbase:    beneficiary,
+		BlockNumber: new(big.Int).Set(header.Number),
+		Time:        new(big.Int).SetUint64(header.Time),
+		Difficulty:  new(big.Int).Set(header.Difficulty),
+		GasLimit:    header.GasLimit,
 	}
 }
 
@@ -117,28 +104,8 @@ func CanTransfer(db vm.StateDB, addr common.Address, amount *big.Int) bool {
 	return db.GetBalance(addr).Cmp(amount) >= 0
 }
 
-func CanTransferMC(db vm.StateDB, addr common.Address, to common.Address, coinID *common.Hash, amount *big.Int) bool {
-	if coinID == nil {
-		return true
-	}
-	if db.GetBalanceMultiCoin(addr, *coinID).Cmp(amount) >= 0 {
-		return true
-	}
-	// insufficient balance
-	return false
-}
-
 // Transfer subtracts amount from sender and adds amount to recipient using the given Db
 func Transfer(db vm.StateDB, sender, recipient common.Address, amount *big.Int) {
 	db.SubBalance(sender, amount)
 	db.AddBalance(recipient, amount)
-}
-
-// Transfer subtracts amount from sender and adds amount to recipient using the given Db
-func TransferMultiCoin(db vm.StateDB, sender, recipient common.Address, coinID *common.Hash, amount *big.Int) {
-	if coinID == nil {
-		return
-	}
-	db.SubBalanceMultiCoin(sender, *coinID, amount)
-	db.AddBalanceMultiCoin(recipient, *coinID, amount)
 }
