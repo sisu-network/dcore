@@ -21,8 +21,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/prometheus/tsdb/fileutil"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // Node is a container on which services can be registered.

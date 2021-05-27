@@ -19,10 +19,6 @@ package ethconfig
 
 import (
 	"math/big"
-	"os"
-	"os/user"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -31,7 +27,6 @@ import (
 	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/sisu-network/dcore/consensus/ethash"
 )
 
 // FullNodeGPO contains default gasprice oracle settings for full node.
@@ -51,15 +46,15 @@ var LightClientGPO = gasprice.Config{
 // Defaults contains default settings for use on the Ethereum main net.
 var Defaults = Config{
 	SyncMode: downloader.FastSync,
-	Ethash: ethash.Config{
-		CacheDir:         "ethash",
-		CachesInMem:      2,
-		CachesOnDisk:     3,
-		CachesLockMmap:   false,
-		DatasetsInMem:    1,
-		DatasetsOnDisk:   2,
-		DatasetsLockMmap: false,
-	},
+	// Ethash: ethash.Config{
+	// 	CacheDir:         "ethash",
+	// 	CachesInMem:      2,
+	// 	CachesOnDisk:     3,
+	// 	CachesLockMmap:   false,
+	// 	DatasetsInMem:    1,
+	// 	DatasetsOnDisk:   2,
+	// 	DatasetsLockMmap: false,
+	// },
 	NetworkId:               1,
 	TxLookupLimit:           2350000,
 	LightPeers:              100,
@@ -83,26 +78,26 @@ var Defaults = Config{
 	RPCTxFeeCap: 1, // 1 ether
 }
 
-func init() {
-	home := os.Getenv("HOME")
-	if home == "" {
-		if user, err := user.Current(); err == nil {
-			home = user.HomeDir
-		}
-	}
-	if runtime.GOOS == "darwin" {
-		Defaults.Ethash.DatasetDir = filepath.Join(home, "Library", "Ethash")
-	} else if runtime.GOOS == "windows" {
-		localappdata := os.Getenv("LOCALAPPDATA")
-		if localappdata != "" {
-			Defaults.Ethash.DatasetDir = filepath.Join(localappdata, "Ethash")
-		} else {
-			Defaults.Ethash.DatasetDir = filepath.Join(home, "AppData", "Local", "Ethash")
-		}
-	} else {
-		Defaults.Ethash.DatasetDir = filepath.Join(home, ".ethash")
-	}
-}
+// func init() {
+// 	home := os.Getenv("HOME")
+// 	if home == "" {
+// 		if user, err := user.Current(); err == nil {
+// 			home = user.HomeDir
+// 		}
+// 	}
+// 	if runtime.GOOS == "darwin" {
+// 		Defaults.Ethash.DatasetDir = filepath.Join(home, "Library", "Ethash")
+// 	} else if runtime.GOOS == "windows" {
+// 		localappdata := os.Getenv("LOCALAPPDATA")
+// 		if localappdata != "" {
+// 			Defaults.Ethash.DatasetDir = filepath.Join(localappdata, "Ethash")
+// 		} else {
+// 			Defaults.Ethash.DatasetDir = filepath.Join(home, "AppData", "Local", "Ethash")
+// 		}
+// 	} else {
+// 		Defaults.Ethash.DatasetDir = filepath.Join(home, ".ethash")
+// 	}
+// }
 
 //go:generate gencodec -type Config -formats toml -out gen_config.go
 
@@ -161,7 +156,7 @@ type Config struct {
 	Miner miner.Config
 
 	// Ethash options
-	Ethash ethash.Config
+	// Ethash ethash.Config
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig
