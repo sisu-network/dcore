@@ -25,7 +25,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/bloombits"
@@ -43,10 +42,10 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/consensus/dummy"
 	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/state/pruner"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/internal/ethapi"
 	"github.com/sisu-network/dcore/miner"
@@ -144,9 +143,10 @@ func New(stack *node.Node, config *ethconfig.Config,
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	if err := pruner.RecoverPruning(stack.ResolvePath(""), chainDb, stack.ResolvePath(config.TrieCleanCacheJournal)); err != nil {
-		log.Error("Failed to recover state", "error", err)
-	}
+	// FIXME RecoverPruning once that package is migrated over
+	// if err := pruner.RecoverPruning(stack.ResolvePath(""), chainDb, stack.ResolvePath(config.TrieCleanCacheJournal)); err != nil {
+	//             log.Error("Failed to recover state", "error", err)
+	// }
 	eth := &Ethereum{
 		config:            config,
 		chainDb:           chainDb,

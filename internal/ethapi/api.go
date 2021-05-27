@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/accounts/scwallet"
@@ -39,6 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/rpc"

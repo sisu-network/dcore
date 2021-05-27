@@ -21,7 +21,6 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/bloombits"
@@ -30,6 +29,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"

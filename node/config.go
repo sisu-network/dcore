@@ -26,7 +26,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/external"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/accounts/scwallet"
@@ -36,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/rpc"
 )
 
