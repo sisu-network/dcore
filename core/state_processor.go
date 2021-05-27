@@ -20,12 +20,12 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/consensus/misc"
+	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 )
 
