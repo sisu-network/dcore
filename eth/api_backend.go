@@ -30,7 +30,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
@@ -56,10 +55,10 @@ func (b *EthAPIBackend) CurrentBlock() *types.Block {
 	return b.eth.blockchain.CurrentBlock()
 }
 
-func (b *EthAPIBackend) SetHead(number uint64) {
-	b.eth.handler.downloader.Cancel()
-	b.eth.blockchain.SetHead(number)
-}
+// func (b *EthAPIBackend) SetHead(number uint64) {
+// 	b.eth.handler.downloader.Cancel()
+// 	b.eth.blockchain.SetHead(number)
+// }
 
 func (b *EthAPIBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Header, error) {
 	// Pending block is only known by the miner
@@ -271,9 +270,9 @@ func (b *EthAPIBackend) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.S
 	return b.eth.TxPool().SubscribeNewTxsEvent(ch)
 }
 
-func (b *EthAPIBackend) Downloader() *downloader.Downloader {
-	return b.eth.Downloader()
-}
+// func (b *EthAPIBackend) Downloader() *downloader.Downloader {
+// 	return b.eth.Downloader()
+// }
 
 func (b *EthAPIBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(ctx)
