@@ -35,7 +35,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanchego/ids"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -562,17 +561,6 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 		return nil, err
 	}
 	return (*hexutil.Big)(state.GetBalance(address)), state.Error()
-}
-
-// GetAssetBalance returns the amount of [assetID] for the given address in the state of the
-// given block number. The rpc.LatestBlockNumber, rpc.PendingBlockNumber, and
-// rpc.AcceptedBlockNumber meta block numbers are also allowed.
-func (s *PublicBlockChainAPI) GetAssetBalance(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash, assetID ids.ID) (*hexutil.Big, error) {
-	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	return (*hexutil.Big)(state.GetBalanceMultiCoin(address, common.Hash(assetID))), state.Error()
 }
 
 // Result structs for GetProof
