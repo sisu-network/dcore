@@ -43,7 +43,6 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/consensus/dummy"
 	"github.com/sisu-network/dcore/core"
@@ -51,6 +50,7 @@ import (
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/internal/ethapi"
 	"github.com/sisu-network/dcore/miner"
+	"github.com/sisu-network/dcore/rpc"
 )
 
 // Config contains the configuration options of the ETH protocol.
