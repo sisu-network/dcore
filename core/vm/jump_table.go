@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -27,7 +17,7 @@
 package vm
 
 import (
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 type (
@@ -66,38 +56,22 @@ var (
 	byzantiumInstructionSet        = newByzantiumInstructionSet()
 	constantinopleInstructionSet   = newConstantinopleInstructionSet()
 	istanbulInstructionSet         = newIstanbulInstructionSet()
-	apricotPhase1InstructionSet    = newApricotPhase1InstructionSet()
-	apricotPhase2InstructionSet    = newApricotPhase2InstructionSet()
+	berlinInstructionSet           = newBerlinInstructionSet()
 )
 
 // JumpTable contains the EVM opcodes supported at a given fork.
 type JumpTable [256]*operation
 
-// newApricotPhase1InstructionSet returns the frontier,
-// homestead, byzantium, contantinople petersburg,
-// istanbul, and apricotPhase1 instructions.
-func newApricotPhase2InstructionSet() JumpTable {
-	instructionSet := newApricotPhase1InstructionSet()
-
-	enable2929(&instructionSet)
-	enableAP2(&instructionSet)
-
-	return instructionSet
-}
-
-// newApricotPhase1InstructionSet returns the frontier,
-// homestead, byzantium, contantinople petersburg,
-// and istanbul instructions.
-func newApricotPhase1InstructionSet() JumpTable {
+// newBerlinInstructionSet returns the frontier, homestead, byzantium,
+// contantinople, istanbul, petersburg and berlin instructions.
+func newBerlinInstructionSet() JumpTable {
 	instructionSet := newIstanbulInstructionSet()
-
-	enableAP1(&instructionSet)
-
+	enable2929(&instructionSet) // Access lists for trie accesses https://eips.ethereum.org/EIPS/eip-2929
 	return instructionSet
 }
 
-// newIstanbulInstructionSet returns the frontier,
-// homestead, byzantium, contantinople and petersburg instructions.
+// newIstanbulInstructionSet returns the frontier, homestead, byzantium,
+// contantinople, istanbul and petersburg instructions.
 func newIstanbulInstructionSet() JumpTable {
 	instructionSet := newConstantinopleInstructionSet()
 
@@ -204,7 +178,6 @@ func newTangerineWhistleInstructionSet() JumpTable {
 	instructionSet[SLOAD].constantGas = params.SloadGasEIP150
 	instructionSet[EXTCODECOPY].constantGas = params.ExtcodeCopyBaseEIP150
 	instructionSet[CALL].constantGas = params.CallGasEIP150
-	instructionSet[CALLEX].constantGas = params.CallGasEIP150
 	instructionSet[CALLCODE].constantGas = params.CallGasEIP150
 	instructionSet[DELEGATECALL].constantGas = params.CallGasEIP150
 	return instructionSet
@@ -388,12 +361,6 @@ func newFrontierInstructionSet() JumpTable {
 			constantGas: params.BalanceGasFrontier,
 			minStack:    minStack(1, 1),
 			maxStack:    maxStack(1, 1),
-		},
-		BALANCEMC: {
-			execute:     opBalanceMultiCoin,
-			constantGas: params.BalanceGasFrontier,
-			minStack:    minStack(2, 1),
-			maxStack:    maxStack(2, 1),
 		},
 		ORIGIN: {
 			execute:     opOrigin,
@@ -1025,15 +992,6 @@ func newFrontierInstructionSet() JumpTable {
 			minStack:    minStack(7, 1),
 			maxStack:    maxStack(7, 1),
 			memorySize:  memoryCall,
-			returns:     true,
-		},
-		CALLEX: {
-			execute:     opCallExpert,
-			constantGas: params.CallGasFrontier,
-			dynamicGas:  gasCall,
-			minStack:    minStack(9, 1),
-			maxStack:    maxStack(9, 1),
-			memorySize:  memoryCallExpert,
 			returns:     true,
 		},
 		CALLCODE: {

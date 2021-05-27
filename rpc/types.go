@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -45,18 +35,6 @@ type API struct {
 	Public    bool        // indication if the methods must be considered safe for public use
 }
 
-// Error wraps RPC errors, which contain an error code in addition to the message.
-type Error interface {
-	Error() string  // returns the message
-	ErrorCode() int // returns the code
-}
-
-// A DataError contains some data in addition to the error message.
-type DataError interface {
-	Error() string          // returns the message
-	ErrorData() interface{} // returns the error data
-}
-
 // ServerCodec implements reading, parsing and writing RPC messages for the server side of
 // a RPC session. Implementations must be go-routine safe since the codec can be called in
 // multiple go-routines concurrently.
@@ -79,7 +57,6 @@ type jsonWriter interface {
 type BlockNumber int64
 
 const (
-	AcceptedBlockNumber = BlockNumber(-3)
 	PendingBlockNumber  = BlockNumber(-2)
 	LatestBlockNumber   = BlockNumber(-1)
 	EarliestBlockNumber = BlockNumber(0)
@@ -107,9 +84,6 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	case "pending":
 		*bn = PendingBlockNumber
 		return nil
-	case "accepted":
-		*bn = AcceptedBlockNumber
-		return nil
 	}
 
 	blckNum, err := hexutil.DecodeUint64(input)
@@ -125,11 +99,6 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 
 func (bn BlockNumber) Int64() int64 {
 	return (int64)(bn)
-}
-
-// IsAccepted returns true if this blockNumber should be treated as a request for the last accepted block
-func (bn BlockNumber) IsAccepted() bool {
-	return bn < EarliestBlockNumber && bn >= AcceptedBlockNumber
 }
 
 type BlockNumberOrHash struct {
@@ -167,10 +136,6 @@ func (bnh *BlockNumberOrHash) UnmarshalJSON(data []byte) error {
 		return nil
 	case "pending":
 		bn := PendingBlockNumber
-		bnh.BlockNumber = &bn
-		return nil
-	case "accepted":
-		bn := AcceptedBlockNumber
 		bnh.BlockNumber = &bn
 		return nil
 	default:

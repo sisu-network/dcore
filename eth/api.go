@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -32,19 +22,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
-	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/rawdb"
-	"github.com/sisu-network/dcore/core/state"
-	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/internal/ethapi"
-	"github.com/sisu-network/dcore/rpc"
 )
 
 // PublicEthereumAPI provides an API to access Ethereum full node-related
@@ -66,6 +59,85 @@ func (api *PublicEthereumAPI) Etherbase() (common.Address, error) {
 // Coinbase is the address that mining rewards will be send to (alias for Etherbase)
 func (api *PublicEthereumAPI) Coinbase() (common.Address, error) {
 	return api.Etherbase()
+}
+
+// Hashrate returns the POW hashrate
+func (api *PublicEthereumAPI) Hashrate() hexutil.Uint64 {
+	return hexutil.Uint64(api.e.Miner().Hashrate())
+}
+
+// PublicMinerAPI provides an API to control the miner.
+// It offers only methods that operate on data that pose no security risk when it is publicly accessible.
+type PublicMinerAPI struct {
+	e *Ethereum
+}
+
+// NewPublicMinerAPI create a new PublicMinerAPI instance.
+func NewPublicMinerAPI(e *Ethereum) *PublicMinerAPI {
+	return &PublicMinerAPI{e}
+}
+
+// Mining returns an indication if this node is currently mining.
+func (api *PublicMinerAPI) Mining() bool {
+	return api.e.IsMining()
+}
+
+// PrivateMinerAPI provides private RPC methods to control the miner.
+// These methods can be abused by external users and must be considered insecure for use by untrusted users.
+type PrivateMinerAPI struct {
+	e *Ethereum
+}
+
+// NewPrivateMinerAPI create a new RPC service which controls the miner of this node.
+func NewPrivateMinerAPI(e *Ethereum) *PrivateMinerAPI {
+	return &PrivateMinerAPI{e: e}
+}
+
+// Start starts the miner with the given number of threads. If threads is nil,
+// the number of workers started is equal to the number of logical CPUs that are
+// usable by this process. If mining is already running, this method adjust the
+// number of threads allowed to use and updates the minimum price required by the
+// transaction pool.
+func (api *PrivateMinerAPI) Start(threads *int) error {
+	if threads == nil {
+		return api.e.StartMining(runtime.NumCPU())
+	}
+	return api.e.StartMining(*threads)
+}
+
+// Stop terminates the miner, both at the consensus engine level as well as at
+// the block creation level.
+func (api *PrivateMinerAPI) Stop() {
+	api.e.StopMining()
+}
+
+// SetExtra sets the extra data string that is included when this miner mines a block.
+func (api *PrivateMinerAPI) SetExtra(extra string) (bool, error) {
+	if err := api.e.Miner().SetExtra([]byte(extra)); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// SetGasPrice sets the minimum accepted gas price for the miner.
+func (api *PrivateMinerAPI) SetGasPrice(gasPrice hexutil.Big) bool {
+	api.e.lock.Lock()
+	api.e.gasPrice = (*big.Int)(&gasPrice)
+	api.e.lock.Unlock()
+
+	api.e.txPool.SetGasPrice((*big.Int)(&gasPrice))
+	return true
+}
+
+// SetEtherbase sets the etherbase of the miner
+func (api *PrivateMinerAPI) SetEtherbase(etherbase common.Address) bool {
+	api.e.SetEtherbase(etherbase)
+	return true
+}
+
+// SetRecommitInterval updates the interval for miner sealing work recommitting.
+func (api *PrivateMinerAPI) SetRecommitInterval(interval int) {
+	api.e.Miner().SetRecommitInterval(time.Duration(interval) * time.Millisecond)
 }
 
 // PrivateAdminAPI is the collection of Ethereum full node-related APIs
@@ -192,13 +264,19 @@ func NewPublicDebugAPI(eth *Ethereum) *PublicDebugAPI {
 
 // DumpBlock retrieves the entire state of the database at a given block.
 func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error) {
+	if blockNr == rpc.PendingBlockNumber {
+		// If we're dumping the pending state, we need to request
+		// both the pending block as well as the pending state from
+		// the miner and operate on those
+		_, stateDb := api.eth.miner.Pending()
+		return stateDb.RawDump(false, false, true), nil
+	}
 	var block *types.Block
-	if blockNr.IsAccepted() {
-		block = api.eth.LastAcceptedBlock()
+	if blockNr == rpc.LatestBlockNumber {
+		block = api.eth.blockchain.CurrentBlock()
 	} else {
 		block = api.eth.blockchain.GetBlockByNumber(uint64(blockNr))
 	}
-
 	if block == nil {
 		return state.Dump{}, fmt.Errorf("block #%d not found", blockNr)
 	}
@@ -241,7 +319,7 @@ type BadBlockArgs struct {
 func (api *PrivateDebugAPI) GetBadBlocks(ctx context.Context) ([]*BadBlockArgs, error) {
 	var (
 		err     error
-		blocks  = api.eth.BlockChain().BadBlocks()
+		blocks  = rawdb.ReadAllBadBlocks(api.eth.chainDb)
 		results = make([]*BadBlockArgs, 0, len(blocks))
 	)
 	for _, block := range blocks {
@@ -275,19 +353,25 @@ func (api *PublicDebugAPI) AccountRange(blockNrOrHash rpc.BlockNumberOrHash, sta
 	var err error
 
 	if number, ok := blockNrOrHash.Number(); ok {
-		var block *types.Block
-		if number.IsAccepted() {
-			block = api.eth.LastAcceptedBlock()
+		if number == rpc.PendingBlockNumber {
+			// If we're dumping the pending state, we need to request
+			// both the pending block as well as the pending state from
+			// the miner and operate on those
+			_, stateDb = api.eth.miner.Pending()
 		} else {
-			block = api.eth.blockchain.GetBlockByNumber(uint64(number))
-		}
-
-		if block == nil {
-			return state.IteratorDump{}, fmt.Errorf("block #%d not found", number)
-		}
-		stateDb, err = api.eth.BlockChain().StateAt(block.Root())
-		if err != nil {
-			return state.IteratorDump{}, err
+			var block *types.Block
+			if number == rpc.LatestBlockNumber {
+				block = api.eth.blockchain.CurrentBlock()
+			} else {
+				block = api.eth.blockchain.GetBlockByNumber(uint64(number))
+			}
+			if block == nil {
+				return state.IteratorDump{}, fmt.Errorf("block #%d not found", number)
+			}
+			stateDb, err = api.eth.BlockChain().StateAt(block.Root())
+			if err != nil {
+				return state.IteratorDump{}, err
+			}
 		}
 	} else if hash, ok := blockNrOrHash.Hash(); ok {
 		block := api.eth.blockchain.GetBlockByHash(hash)

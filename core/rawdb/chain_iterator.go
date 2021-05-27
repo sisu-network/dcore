@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2019 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -33,11 +23,60 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/prque"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/sisu-network/dcore/core/types"
 )
+
+// InitDatabaseFromFreezer reinitializes an empty database from a previous batch
+// of frozen ancient blocks. The method iterates over all the frozen blocks and
+// injects into the database the block hash->number mappings.
+func InitDatabaseFromFreezer(db ethdb.Database) {
+	// If we can't access the freezer or it's empty, abort
+	frozen, err := db.Ancients()
+	if err != nil || frozen == 0 {
+		return
+	}
+	var (
+		batch  = db.NewBatch()
+		start  = time.Now()
+		logged = start.Add(-7 * time.Second) // Unindex during import is fast, don't double log
+		hash   common.Hash
+	)
+	for i := uint64(0); i < frozen; i++ {
+		// Since the freezer has all data in sequential order on a file,
+		// it would be 'neat' to read more data in one go, and let the
+		// freezerdb return N items (e.g up to 1000 items per go)
+		// That would require an API change in Ancients though
+		if h, err := db.Ancient(freezerHashTable, i); err != nil {
+			log.Crit("Failed to init database from freezer", "err", err)
+		} else {
+			hash = common.BytesToHash(h)
+		}
+		WriteHeaderNumber(batch, hash, i)
+		// If enough data was accumulated in memory or we're at the last block, dump to disk
+		if batch.ValueSize() > ethdb.IdealBatchSize {
+			if err := batch.Write(); err != nil {
+				log.Crit("Failed to write data to db", "err", err)
+			}
+			batch.Reset()
+		}
+		// If we've spent too much time already, notify the user of what we're doing
+		if time.Since(logged) > 8*time.Second {
+			log.Info("Initializing database from freezer", "total", frozen, "number", i, "hash", hash, "elapsed", common.PrettyDuration(time.Since(start)))
+			logged = time.Now()
+		}
+	}
+	if err := batch.Write(); err != nil {
+		log.Crit("Failed to write data to db", "err", err)
+	}
+	batch.Reset()
+
+	WriteHeadHeaderHash(db, hash)
+	WriteHeadFastBlockHash(db, hash)
+	log.Info("Initialized database from freezer", "blocks", frozen, "elapsed", common.PrettyDuration(time.Since(start)))
+}
 
 type blockTxHashes struct {
 	number uint64

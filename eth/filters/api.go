@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -35,13 +25,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/sisu-network/dcore/core/types"
-	"github.com/sisu-network/dcore/interfaces"
-	"github.com/sisu-network/dcore/rpc"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // filter is a helper struct that holds meta information over the filter type
@@ -82,9 +72,8 @@ func NewPublicFilterAPI(backend Backend, lightMode bool, timeout time.Duration) 
 	return api
 }
 
-// timeoutLoop runs at the interval set by [timeout] and deletes filters
-// that have not been recently used.
-// It is started when the api is created.
+// timeoutLoop runs at the interval set by 'timeout' and deletes filters
+// that have not been recently used. It is started when the API is created.
 func (api *PublicFilterAPI) timeoutLoop(timeout time.Duration) {
 	var toUninstall []*Subscription
 	ticker := time.NewTicker(timeout)
@@ -186,38 +175,6 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 	return rpcSub, nil
 }
 
-// NewAcceptedTransactions creates a subscription that is triggered each time a transaction is accepted.
-func (api *PublicFilterAPI) NewAcceptedTransactions(ctx context.Context) (*rpc.Subscription, error) {
-	notifier, supported := rpc.NotifierFromContext(ctx)
-	if !supported {
-		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
-	}
-
-	rpcSub := notifier.CreateSubscription()
-
-	go func() {
-		txHashes := make(chan []common.Hash, 128)
-		acceptedTxSub := api.events.SubscribeAcceptedTxs(txHashes)
-
-		for {
-			select {
-			case hashes := <-txHashes:
-				for _, h := range hashes {
-					notifier.Notify(rpcSub.ID, h)
-				}
-			case <-rpcSub.Err():
-				acceptedTxSub.Unsubscribe()
-				return
-			case <-notifier.Closed():
-				acceptedTxSub.Unsubscribe()
-				return
-			}
-		}
-	}()
-
-	return rpcSub, nil
-}
-
 // NewBlockFilter creates a filter that fetches blocks that are imported into the chain.
 // It is part of the filter package since polling goes with eth_getFilterChanges.
 //
@@ -225,14 +182,8 @@ func (api *PublicFilterAPI) NewAcceptedTransactions(ctx context.Context) (*rpc.S
 func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 	var (
 		headers   = make(chan *types.Header)
-		headerSub *Subscription
-	)
-
-	if api.backend.GetVMConfig().AllowUnfinalizedQueries {
 		headerSub = api.events.SubscribeNewHeads(headers)
-	} else {
-		headerSub = api.events.SubscribeAcceptedHeads(headers)
-	}
+	)
 
 	api.filtersMu.Lock()
 	api.filters[headerSub.ID] = &filter{typ: BlocksSubscription, deadline: time.NewTimer(api.timeout), hashes: make([]common.Hash, 0), s: headerSub}
@@ -269,16 +220,8 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 	rpcSub := notifier.CreateSubscription()
 
 	go func() {
-		var (
-			headers    = make(chan *types.Header)
-			headersSub event.Subscription
-		)
-
-		if api.backend.GetVMConfig().AllowUnfinalizedQueries {
-			headersSub = api.events.SubscribeNewHeads(headers)
-		} else {
-			headersSub = api.events.SubscribeAcceptedHeads(headers)
-		}
+		headers := make(chan *types.Header)
+		headersSub := api.events.SubscribeNewHeads(headers)
 
 		for {
 			select {
@@ -307,23 +250,15 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit FilterCriteria) (*rpc
 	var (
 		rpcSub      = notifier.CreateSubscription()
 		matchedLogs = make(chan []*types.Log)
-		logsSub     event.Subscription
-		err         error
 	)
 
-	if api.backend.GetVMConfig().AllowUnfinalizedQueries {
-		logsSub, err = api.events.SubscribeLogs(interfaces.FilterQuery(crit), matchedLogs)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		logsSub, err = api.events.SubscribeAcceptedLogs(interfaces.FilterQuery(crit), matchedLogs)
-		if err != nil {
-			return nil, err
-		}
+	logsSub, err := api.events.SubscribeLogs(ethereum.FilterQuery(crit), matchedLogs)
+	if err != nil {
+		return nil, err
 	}
 
 	go func() {
+
 		for {
 			select {
 			case logs := <-matchedLogs:
@@ -344,8 +279,8 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit FilterCriteria) (*rpc
 }
 
 // FilterCriteria represents a request to create a new filter.
-// Same as interfaces.FilterQuery but with UnmarshalJSON() method.
-type FilterCriteria interfaces.FilterQuery
+// Same as ethereum.FilterQuery but with UnmarshalJSON() method.
+type FilterCriteria ethereum.FilterQuery
 
 // NewFilter creates a new filter and returns the filter id. It can be
 // used to retrieve logs when the state changes. This method cannot be
@@ -361,22 +296,10 @@ type FilterCriteria interfaces.FilterQuery
 //
 // https://eth.wiki/json-rpc/API#eth_newfilter
 func (api *PublicFilterAPI) NewFilter(crit FilterCriteria) (rpc.ID, error) {
-	var (
-		logs    = make(chan []*types.Log)
-		logsSub *Subscription
-		err     error
-	)
-
-	if api.backend.GetVMConfig().AllowUnfinalizedQueries {
-		logsSub, err = api.events.SubscribeLogs(interfaces.FilterQuery(crit), logs)
-		if err != nil {
-			return rpc.ID(""), err
-		}
-	} else {
-		logsSub, err = api.events.SubscribeAcceptedLogs(interfaces.FilterQuery(crit), logs)
-		if err != nil {
-			return rpc.ID(""), err
-		}
+	logs := make(chan []*types.Log)
+	logsSub, err := api.events.SubscribeLogs(ethereum.FilterQuery(crit), logs)
+	if err != nil {
+		return "", err
 	}
 
 	api.filtersMu.Lock()
@@ -414,8 +337,6 @@ func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit FilterCriteria) ([
 		filter = NewBlockFilter(api.backend, *crit.BlockHash, crit.Addresses, crit.Topics)
 	} else {
 		// Convert the RPC block numbers into internal representations
-		// LatestBlockNumber is left in place here to be handled
-		// correctly within NewRangeFilter
 		begin := rpc.LatestBlockNumber.Int64()
 		if crit.FromBlock != nil {
 			begin = crit.FromBlock.Int64()
@@ -425,11 +346,7 @@ func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit FilterCriteria) ([
 			end = crit.ToBlock.Int64()
 		}
 		// Construct the range filter
-		var err error
-		filter, err = NewRangeFilter(api.backend, begin, end, crit.Addresses, crit.Topics)
-		if err != nil {
-			return nil, err
-		}
+		filter = NewRangeFilter(api.backend, begin, end, crit.Addresses, crit.Topics)
 	}
 	// Run the filter and return all the logs
 	logs, err := filter.Logs(ctx)
@@ -475,9 +392,6 @@ func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*ty
 		filter = NewBlockFilter(api.backend, *f.crit.BlockHash, f.crit.Addresses, f.crit.Topics)
 	} else {
 		// Convert the RPC block numbers into internal representations
-		// Leave LatestBlockNumber in place here as the defaults
-		// Should be handled correctly as request for the last
-		// accepted block instead throughout all APIs.
 		begin := rpc.LatestBlockNumber.Int64()
 		if f.crit.FromBlock != nil {
 			begin = f.crit.FromBlock.Int64()
@@ -487,11 +401,7 @@ func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*ty
 			end = f.crit.ToBlock.Int64()
 		}
 		// Construct the range filter
-		var err error
-		filter, err = NewRangeFilter(api.backend, begin, end, f.crit.Addresses, f.crit.Topics)
-		if err != nil {
-			return nil, err
-		}
+		filter = NewRangeFilter(api.backend, begin, end, f.crit.Addresses, f.crit.Topics)
 	}
 	// Run the filter and return all the logs
 	logs, err := filter.Logs(ctx)
@@ -521,11 +431,11 @@ func (api *PublicFilterAPI) GetFilterChanges(id rpc.ID) (interface{}, error) {
 		f.deadline.Reset(api.timeout)
 
 		switch f.typ {
-		case PendingTransactionsSubscription, BlocksSubscription, AcceptedBlocksSubscription, AcceptedTransactionsSubscription:
+		case PendingTransactionsSubscription, BlocksSubscription:
 			hashes := f.hashes
 			f.hashes = nil
 			return returnHashes(hashes), nil
-		case LogsSubscription, AcceptedLogsSubscription, MinedAndPendingLogsSubscription:
+		case LogsSubscription, MinedAndPendingLogsSubscription:
 			logs := f.logs
 			f.logs = nil
 			return returnLogs(logs), nil

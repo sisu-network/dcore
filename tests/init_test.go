@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2017 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -41,32 +31,30 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
-// Original code:
 // Command line flags to configure the interpreters.
-// var (
-// 	testEVM   = flag.String("vm.evm", "", "EVM configuration")
-// 	testEWASM = flag.String("vm.ewasm", "", "EWASM configuration")
-// )
+var (
+	testEVM   = flag.String("vm.evm", "", "EVM configuration")
+	testEWASM = flag.String("vm.ewasm", "", "EWASM configuration")
+)
 
 func TestMain(m *testing.M) {
 	flag.Parse()
 	os.Exit(m.Run())
 }
 
-// Original code:
-// var (
-// baseDir = filepath.Join(".", "testdata")
-// blockTestDir       = filepath.Join(baseDir, "BlockchainTests")
-// stateTestDir       = filepath.Join(baseDir, "GeneralStateTests")
-// legacyStateTestDir = filepath.Join(baseDir, "LegacyTests", "Constantinople", "GeneralStateTests")
-// transactionTestDir = filepath.Join(baseDir, "TransactionTests")
-// vmTestDir          = filepath.Join(baseDir, "VMTests")
-// rlpTestDir         = filepath.Join(baseDir, "RLPTests")
-// difficultyTestDir  = filepath.Join(baseDir, "BasicTests")
-// )
+var (
+	baseDir            = filepath.Join(".", "testdata")
+	blockTestDir       = filepath.Join(baseDir, "BlockchainTests")
+	stateTestDir       = filepath.Join(baseDir, "GeneralStateTests")
+	legacyStateTestDir = filepath.Join(baseDir, "LegacyTests", "Constantinople", "GeneralStateTests")
+	transactionTestDir = filepath.Join(baseDir, "TransactionTests")
+	vmTestDir          = filepath.Join(baseDir, "VMTests")
+	rlpTestDir         = filepath.Join(baseDir, "RLPTests")
+	difficultyTestDir  = filepath.Join(baseDir, "BasicTests")
+)
 
 func readJSON(reader io.Reader, value interface{}) error {
 	data, err := ioutil.ReadAll(reader)
@@ -302,7 +290,6 @@ func runTestFunc(runTest interface{}, t *testing.T, name string, m reflect.Value
 	})
 }
 
-/*
 func TestMatcherWhitelist(t *testing.T) {
 	t.Parallel()
 	tm := new(testMatcher)
@@ -313,4 +300,3 @@ func TestMatcherWhitelist(t *testing.T) {
 		}
 	})
 }
-*/

@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2019 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -30,8 +20,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
-	"github.com/sisu-network/dcore/params"
 )
 
 var activators = map[int]func(*JumpTable){
@@ -153,18 +143,4 @@ func enable2929(jt *JumpTable) {
 	// factor here
 	jt[SELFDESTRUCT].constantGas = params.SelfdestructGasEIP150
 	jt[SELFDESTRUCT].dynamicGas = gasSelfdestructEIP2929
-}
-
-// enableAP1 disables gas refunds for SSTORE and SELFDESTRUCT. It is very
-// similar to EIP-3298: Removal of Refunds [DRAFT]
-// (https://eips.ethereum.org/EIPS/eip-3298).
-func enableAP1(jt *JumpTable) {
-	jt[SSTORE].dynamicGas = gasSStoreAP1
-	jt[SELFDESTRUCT].dynamicGas = gasSelfdestructAP1
-	jt[CALLEX].dynamicGas = gasCallExpertAP1
-}
-
-func enableAP2(jt *JumpTable) {
-	jt[BALANCEMC] = nil
-	jt[CALLEX] = nil
 }

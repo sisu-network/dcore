@@ -1,13 +1,3 @@
-// (c) 2019-2020, Ava Labs, Inc.
-//
-// This file is a derived work, based on the go-ethereum library whose original
-// notices appear below.
-//
-// It is distributed under a license compatible with the licensing terms of the
-// original code from which it is derived.
-//
-// Much love to the original authors for their work.
-// **********
 // Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
@@ -34,7 +24,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/sisu-network/dcore/params"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 var ErrInvalidChainId = errors.New("invalid chain id for signer")
@@ -46,18 +36,20 @@ type sigCache struct {
 	from   common.Address
 }
 
-// MakeSigner returns a Signer based on the given chain config and block number or time.
-func MakeSigner(config *params.ChainConfig, blockNumber *big.Int, blockTime *big.Int) Signer {
+// MakeSigner returns a Signer based on the given chain config and block number.
+func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
+	var signer Signer
 	switch {
-	case config.IsApricotPhase2(blockTime):
-		return NewEIP2930Signer(config.ChainID)
+	case config.IsBerlin(blockNumber):
+		signer = NewEIP2930Signer(config.ChainID)
 	case config.IsEIP155(blockNumber):
-		return NewEIP155Signer(config.ChainID)
+		signer = NewEIP155Signer(config.ChainID)
 	case config.IsHomestead(blockNumber):
-		return HomesteadSigner{}
+		signer = HomesteadSigner{}
 	default:
-		return FrontierSigner{}
+		signer = FrontierSigner{}
 	}
+	return signer
 }
 
 // LatestSigner returns the 'most permissive' Signer available for the given chain
@@ -69,7 +61,7 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int, blockTime *big
 // have the current block number available, use MakeSigner instead.
 func LatestSigner(config *params.ChainConfig) Signer {
 	if config.ChainID != nil {
-		if config.ApricotPhase2BlockTimestamp != nil {
+		if config.BerlinBlock != nil || config.YoloV3Block != nil {
 			return NewEIP2930Signer(config.ChainID)
 		}
 		if config.EIP155Block != nil {
