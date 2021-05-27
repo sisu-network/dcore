@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 // accessList is an accumulator for the set of accounts and storage slots an EVM

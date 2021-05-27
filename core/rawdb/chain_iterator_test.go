@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/sisu-network/dcore/core/types"
 )
 
 func TestChainIterator(t *testing.T) {
