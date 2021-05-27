@@ -314,22 +314,23 @@ type publicAdminAPI struct {
 
 // Peers retrieves all the information we know about each individual peer at the
 // protocol granularity.
-func (api *publicAdminAPI) Peers() ([]*p2p.PeerInfo, error) {
-	server := api.node.Server()
-	if server == nil {
-		return nil, ErrNodeStopped
-	}
-	return server.PeersInfo(), nil
-}
+// func (api *publicAdminAPI) Peers() ([]*p2p.PeerInfo, error) {
+// 	server := api.node.Server()
+// 	if server == nil {
+// 		return nil, ErrNodeStopped
+// 	}
+// 	return server.PeersInfo(), nil
+// }
 
 // NodeInfo retrieves all the information we know about the host node at the
 // protocol granularity.
 func (api *publicAdminAPI) NodeInfo() (*p2p.NodeInfo, error) {
-	server := api.node.Server()
-	if server == nil {
-		return nil, ErrNodeStopped
-	}
-	return server.NodeInfo(), nil
+	// server := api.node.Server()
+	// if server == nil {
+	// 	return nil, ErrNodeStopped
+	// }
+	// return server.NodeInfo(), nil
+	return nil, errNotSupported
 }
 
 // Datadir retrieves the current data directory the node is using.
@@ -344,7 +345,7 @@ type publicWeb3API struct {
 
 // ClientVersion returns the node name
 func (s *publicWeb3API) ClientVersion() string {
-	return s.stack.Server().Name
+	return s.stack.config.DcoreVersion
 }
 
 // Sha3 applies the ethereum sha3 implementation on the input.
