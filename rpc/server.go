@@ -20,6 +20,7 @@ import (
 	"context"
 	"io"
 	"sync/atomic"
+	"time"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/log"
@@ -42,15 +43,25 @@ const (
 
 // Server is an RPC server.
 type Server struct {
-	services serviceRegistry
-	idgen    func() ID
-	run      int32
-	codecs   mapset.Set
+	services        serviceRegistry
+	idgen           func() ID
+	run             int32
+	codecs          mapset.Set
+	maximumDuration time.Duration
 }
 
 // NewServer creates a new server instance with no registered handlers.
-func NewServer() *Server {
-	server := &Server{idgen: randomIDGenerator(), codecs: mapset.NewSet(), run: 1}
+//
+// If [maximumDuration] > 0, the deadline of incoming requests is
+// [maximumDuration] in the future. Otherwise, no deadline is assigned to
+// incoming requests.
+func NewServer(maximumDuration time.Duration) *Server {
+	server := &Server{
+		idgen:           randomIDGenerator(),
+		codecs:          mapset.NewSet(),
+		run:             1,
+		maximumDuration: maximumDuration,
+	}
 	// Register the default service providing meta information about the RPC service such
 	// as the services and methods it offers.
 	rpcService := &RPCService{server}

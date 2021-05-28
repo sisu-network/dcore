@@ -83,13 +83,14 @@ var (
 )
 
 const (
-	bodyCacheLimit      = 256
-	blockCacheLimit     = 256
-	receiptsCacheLimit  = 32
-	txLookupCacheLimit  = 1024
-	maxFutureBlocks     = 256
-	maxTimeFutureBlocks = 30
-	TriesInMemory       = 128
+	bodyCacheLimit       = 256
+	blockCacheLimit      = 256
+	receiptsCacheLimit   = 32
+	txLookupCacheLimit   = 1024
+	maxFutureBlocks      = 256
+	maxTimeFutureBlocks  = 30
+	TriesInMemory        = 128
+	repairBlockBatchSize = 10
 
 	// BlockChainVersion ensures that an incompatible database forces a resync from scratch.
 	//
@@ -919,6 +920,177 @@ func (bc *BlockChain) GetBlockByNumber(number uint64) *types.Block {
 		return nil
 	}
 	return bc.GetBlock(hash, number)
+}
+
+func (bc *BlockChain) ValidateCanonicalChain() error {
+	current := bc.CurrentBlock()
+	i := 0
+	log.Info("Beginning to validate canonical chain", "startBlock", current.NumberU64())
+
+	for current.Hash() != bc.genesisBlock.Hash() {
+		blkByHash := bc.GetBlockByHash(current.Hash())
+		if blkByHash == nil {
+			return fmt.Errorf("couldn't find block by hash %s at height %d", current.Hash().String(), current.Number())
+		}
+		if blkByHash.Hash() != current.Hash() {
+			return fmt.Errorf("blockByHash returned a block with an unexpected hash: %s, expected: %s", blkByHash.Hash().String(), current.Hash().String())
+		}
+		blkByNumber := bc.GetBlockByNumber(current.Number().Uint64())
+		if blkByNumber == nil {
+			return fmt.Errorf("couldn't find block by number at height %d", current.Number())
+		}
+		if blkByNumber.Hash() != current.Hash() {
+			return fmt.Errorf("blockByNumber returned a block with unexpected hash: %s, expected: %s", blkByNumber.Hash().String(), current.Hash().String())
+		}
+
+		hdrByHash := bc.GetHeaderByHash(current.Hash())
+		if hdrByHash == nil {
+			return fmt.Errorf("couldn't find block header by hash %s at height %d", current.Hash().String(), current.Number())
+		}
+		if hdrByHash.Hash() != current.Hash() {
+			return fmt.Errorf("hdrByHash returned a block header with an unexpected hash: %s, expected: %s", hdrByHash.Hash().String(), current.Hash().String())
+		}
+		hdrByNumber := bc.GetHeaderByNumber(current.Number().Uint64())
+		if hdrByNumber == nil {
+			return fmt.Errorf("couldn't find block header by number at height %d", current.Number())
+		}
+		if hdrByNumber.Hash() != current.Hash() {
+			return fmt.Errorf("hdrByNumber returned a block header with unexpected hash: %s, expected: %s", hdrByNumber.Hash().String(), current.Hash().String())
+		}
+
+		// Ensure that all of the transactions have been stored correctly in the canonical
+		// chain
+		txs := current.Body().Transactions
+		for txIndex, tx := range txs {
+			txLookup := bc.GetTransactionLookup(tx.Hash())
+			if txLookup == nil {
+				return fmt.Errorf("failed to find transaction %s", tx.Hash().String())
+			}
+			if txLookup.BlockHash != current.Hash() {
+				return fmt.Errorf("tx lookup returned with incorrect block hash: %s, expected: %s", txLookup.BlockHash.String(), current.Hash().String())
+			}
+			if txLookup.BlockIndex != current.Number().Uint64() {
+				return fmt.Errorf("tx lookup returned with incorrect block index: %d, expected: %d", txLookup.BlockIndex, current.Number().Uint64())
+			}
+			if txLookup.Index != uint64(txIndex) {
+				return fmt.Errorf("tx lookup returned with incorrect transaction index: %d, expected: %d", txLookup.Index, txIndex)
+			}
+		}
+
+		blkReceipts := bc.GetReceiptsByHash(current.Hash())
+		if blkReceipts.Len() != len(txs) {
+			return fmt.Errorf("found %d transaction receipts, expected %d", blkReceipts.Len(), len(txs))
+		}
+		for index, txReceipt := range blkReceipts {
+			if txReceipt.TxHash != txs[index].Hash() {
+				return fmt.Errorf("transaction receipt mismatch, expected %s, but found: %s", txs[index].Hash().String(), txReceipt.TxHash.String())
+			}
+			if txReceipt.BlockHash != current.Hash() {
+				return fmt.Errorf("transaction receipt had block hash %s, but expected %s", txReceipt.BlockHash.String(), current.Hash().String())
+			}
+			if txReceipt.BlockNumber.Uint64() != current.NumberU64() {
+				return fmt.Errorf("transaction receipt had block number %d, but expected %d", txReceipt.BlockNumber.Uint64(), current.NumberU64())
+			}
+		}
+
+		i += 1
+		if i%1000 == 0 {
+			log.Info("Validate Canonical Chain Update", "totalBlocks", i)
+		}
+
+		parent := bc.GetBlockByHash(current.ParentHash())
+		if parent.Hash() != current.ParentHash() {
+			return fmt.Errorf("getBlockByHash retrieved parent block with incorrect hash, found %s, expected: %s", parent.Hash().String(), current.ParentHash().String())
+		}
+		current = parent
+	}
+
+	return nil
+}
+
+// WriteCanonicalFromCurrentBlock writes the canonical chain from the
+// current block to the genesis.
+func (bc *BlockChain) WriteCanonicalFromCurrentBlock(toBlock *types.Block) error {
+	current := bc.CurrentBlock()
+	if current == nil {
+		return fmt.Errorf("failed to get current block")
+	}
+	lastBlk, err := bc.writeCanonicalFromBlock(current, toBlock, repairBlockBatchSize)
+	if err == nil {
+		return nil
+	}
+
+	log.Error("problem repairing canonical", "batchSize", repairBlockBatchSize, "error", err)
+	_, err = bc.writeCanonicalFromBlock(lastBlk, toBlock, 1)
+	return err
+}
+
+// writeCanonicalFromBlock writes the canonical chain from [startBlock] back to the genesis
+// using [batchSize] for each write. Returns the last block that was successfully written
+// if an error occurs, which is guaranteed to be non-nil.
+// assumes that [startBlock] and [toBlock] are non-nil
+func (bc *BlockChain) writeCanonicalFromBlock(startBlock, toBlock *types.Block, batchSize int) (*types.Block, error) {
+	current := startBlock
+	// assumes [startBlock] is non-nil
+	lastBlk := startBlock
+
+	currentSize := 0
+	totalUpdates := 0
+	batch := bc.db.NewBatch()
+
+	log.Debug("repairing canonical chain from block", "hash", current.Hash().String(), "number", current.NumberU64())
+
+	for current.Hash() != toBlock.Hash() {
+		blkNumber := current.NumberU64()
+		log.Debug("repairing block", "hash", current.Hash().String(), "height", blkNumber)
+
+		rawdb.WriteCanonicalHash(batch, current.Hash(), current.NumberU64())
+		rawdb.WriteTxLookupEntriesByBlock(batch, current)
+		currentSize += 1
+		if currentSize >= batchSize {
+			totalUpdates += currentSize
+			log.Debug("writing repair batch", "totalUpdates", totalUpdates, "size", currentSize)
+
+			bc.chainmu.Lock()
+			// Flush the whole batch into the disk
+			if err := batch.Write(); err != nil {
+				// If the batch write failed, unlock and return [lastBlk] and the error
+				bc.chainmu.Unlock()
+				return lastBlk, fmt.Errorf("failed to write batch with size %d at current block height %d: %s", currentSize, blkNumber, err)
+			}
+			bc.chainmu.Unlock()
+			currentSize = 0
+			// Update [lastBlk] to current since it was successfully updated
+			// [current] is guaranteed to be non-nil here because of the check
+			// at the start of the for loop.
+			lastBlk = current
+			batch = bc.db.NewBatch()
+		}
+
+		parent := bc.GetBlockByHash(current.ParentHash())
+		if parent == nil {
+			return lastBlk, fmt.Errorf("failed to get parent of block %s, with parent hash %s", current.Hash().String(), current.ParentHash().String())
+		} else {
+			current = parent
+		}
+	}
+
+	if currentSize > 0 {
+		totalUpdates += currentSize
+		log.Debug("writing repair batch", "totalUpdates", totalUpdates, "size", currentSize)
+
+		bc.chainmu.Lock()
+		// Flush the whole batch into the disk
+		if err := batch.Write(); err != nil {
+			// If the batch write failed, unlock and return [lastBlk] and the error
+			bc.chainmu.Unlock()
+			return lastBlk, fmt.Errorf("failed to write final batch due to: %w", err)
+		}
+		bc.chainmu.Unlock()
+	}
+	log.Debug("finished repairs", "totalUpdates", totalUpdates)
+
+	return toBlock, nil
 }
 
 // GetReceiptsByHash retrieves the receipts for all transactions in a given block.
@@ -2601,6 +2773,11 @@ func (bc *BlockChain) SubscribeChainEvent(ch chan<- ChainEvent) event.Subscripti
 	return bc.scope.Track(bc.chainFeed.Subscribe(ch))
 }
 
+// SubscribeChainAcceptedEvent registers a subscription of ChainEvent.
+func (bc *BlockChain) SubscribeChainAcceptedEvent(ch chan<- ChainEvent) event.Subscription {
+	return bc.scope.Track(bc.chainAcceptedFeed.Subscribe(ch))
+}
+
 // SubscribeChainHeadEvent registers a subscription of ChainHeadEvent.
 func (bc *BlockChain) SubscribeChainHeadEvent(ch chan<- ChainHeadEvent) event.Subscription {
 	return bc.scope.Track(bc.chainHeadFeed.Subscribe(ch))
@@ -2620,4 +2797,9 @@ func (bc *BlockChain) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscript
 // block processing has started while false means it has stopped.
 func (bc *BlockChain) SubscribeBlockProcessingEvent(ch chan<- bool) event.Subscription {
 	return bc.scope.Track(bc.blockProcFeed.Subscribe(ch))
+}
+
+// SubscribeAcceptedTransactionEvent registers a subscription of accepted transactions
+func (bc *BlockChain) SubscribeAcceptedTransactionEvent(ch chan<- NewTxsEvent) event.Subscription {
+	return bc.scope.Track(bc.txAcceptedFeed.Subscribe(ch))
 }
