@@ -27,7 +27,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/trie"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/consensus/misc"
 	"github.com/sisu-network/dcore/core"
@@ -161,14 +160,14 @@ type worker struct {
 
 	mu       sync.RWMutex // The lock used to protect the coinbase and extra fields
 	coinbase common.Address
-	extra    []byte
+	// extra    []byte
 
 	pendingMu    sync.RWMutex
 	pendingTasks map[common.Hash]*task
 
-	snapshotMu    sync.RWMutex // The lock used to protect the block snapshot and state snapshot
-	snapshotBlock *types.Block
-	snapshotState *state.StateDB
+	// snapshotMu    sync.RWMutex // The lock used to protect the block snapshot and state snapshot
+	// snapshotBlock *types.Block
+	// snapshotState *state.StateDB
 
 	// atomic status counters
 	running int32 // The indicator whether the consensus engine is running or not.
@@ -247,12 +246,12 @@ func (w *worker) setEtherbase(addr common.Address) {
 	w.coinbase = addr
 }
 
-// setExtra sets the content used to initialize the block extra field.
-func (w *worker) setExtra(extra []byte) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.extra = extra
-}
+// // setExtra sets the content used to initialize the block extra field.
+// func (w *worker) setExtra(extra []byte) {
+// 	w.mu.Lock()
+// 	defer w.mu.Unlock()
+// 	w.extra = extra
+// }
 
 // setRecommitInterval updates the interval for miner sealing work recommitting.
 func (w *worker) setRecommitInterval(interval time.Duration) {
@@ -392,17 +391,18 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 		case <-w.startCh:
 			clearPending(w.chain.CurrentBlock().NumberU64())
 			timestamp = time.Now().Unix()
-			commit(false, commitInterruptNewHead)
+			// commit(false, commitInterruptNewHead)
 
 		case head := <-w.chainHeadCh:
 			clearPending(head.Block.NumberU64())
 			timestamp = time.Now().Unix()
-			commit(false, commitInterruptNewHead)
+			// commit(false, commitInterruptNewHead)
 
 		case <-timer.C:
 			// If mining is running resubmit a new work cycle periodically to pull in
 			// higher priced transactions. Disable this overhead for pending blocks.
-			if w.isRunning() && (w.chainConfig.Clique == nil || w.chainConfig.Clique.Period > 0) {
+			// if w.isRunning() && (w.chainConfig.Clique == nil || w.chainConfig.Clique.Period > 0) {
+			if w.isRunning() {
 				// Short circuit if no new transaction arrives.
 				if atomic.LoadInt32(&w.newTxs) == 0 {
 					timer.Reset(recommit)
@@ -458,45 +458,45 @@ func (w *worker) mainLoop() {
 		case req := <-w.newWorkCh:
 			w.commitNewWork(req.interrupt, req.noempty, req.timestamp)
 
-		case ev := <-w.chainSideCh:
-			// Short circuit for duplicate side blocks
-			if _, exist := w.localUncles[ev.Block.Hash()]; exist {
-				continue
-			}
-			if _, exist := w.remoteUncles[ev.Block.Hash()]; exist {
-				continue
-			}
-			// Add side block to possible uncle block set depending on the author.
-			if w.isLocalBlock != nil && w.isLocalBlock(ev.Block) {
-				w.localUncles[ev.Block.Hash()] = ev.Block
-			} else {
-				w.remoteUncles[ev.Block.Hash()] = ev.Block
-			}
-			// If our mining block contains less than 2 uncle blocks,
-			// add the new uncle block if valid and regenerate a mining block.
-			if w.isRunning() && w.current != nil && w.current.uncles.Cardinality() < 2 {
-				start := time.Now()
-				if err := w.commitUncle(w.current, ev.Block.Header()); err == nil {
-					var uncles []*types.Header
-					w.current.uncles.Each(func(item interface{}) bool {
-						hash, ok := item.(common.Hash)
-						if !ok {
-							return false
-						}
-						uncle, exist := w.localUncles[hash]
-						if !exist {
-							uncle, exist = w.remoteUncles[hash]
-						}
-						if !exist {
-							return false
-						}
-						uncles = append(uncles, uncle.Header())
-						return false
-					})
-					w.commit(uncles, nil, true, start)
-				}
-			}
-
+			// case ev := <-w.chainSideCh:
+			// 	// Short circuit for duplicate side blocks
+			// 	if _, exist := w.localUncles[ev.Block.Hash()]; exist {
+			// 		continue
+			// 	}
+			// 	if _, exist := w.remoteUncles[ev.Block.Hash()]; exist {
+			// 		continue
+			// 	}
+			// 	// Add side block to possible uncle block set depending on the author.
+			// 	if w.isLocalBlock != nil && w.isLocalBlock(ev.Block) {
+			// 		w.localUncles[ev.Block.Hash()] = ev.Block
+			// 	} else {
+			// 		w.remoteUncles[ev.Block.Hash()] = ev.Block
+			// 	}
+			// 	// If our mining block contains less than 2 uncle blocks,
+			// 	// add the new uncle block if valid and regenerate a mining block.
+			// 	if w.isRunning() && w.current != nil && w.current.uncles.Cardinality() < 2 {
+			// 		start := time.Now()
+			// 		if err := w.commitUncle(w.current, ev.Block.Header()); err == nil {
+			// 			var uncles []*types.Header
+			// 			w.current.uncles.Each(func(item interface{}) bool {
+			// 				hash, ok := item.(common.Hash)
+			// 				if !ok {
+			// 					return false
+			// 				}
+			// 				uncle, exist := w.localUncles[hash]
+			// 				if !exist {
+			// 					uncle, exist = w.remoteUncles[hash]
+			// 				}
+			// 				if !exist {
+			// 					return false
+			// 				}
+			// 				uncles = append(uncles, uncle.Header())
+			// 				return false
+			// 			})
+			// 			w.commit(uncles, nil, true, start)
+			// 		}
+			// 	}
+		case <-w.chainSideCh:
 		case ev := <-w.txsCh:
 			// Apply transactions to the pending state if we're not mining.
 			//
@@ -518,21 +518,22 @@ func (w *worker) mainLoop() {
 					txs[acc] = append(txs[acc], tx)
 				}
 				txset := types.NewTransactionsByPriceAndNonce(w.current.signer, txs)
-				tcount := w.current.tcount
+				// tcount := w.current.tcount
 				w.commitTransactions(txset, coinbase, nil)
-				// Only update the snapshot if any new transactons were added
-				// to the pending block
-				if tcount != w.current.tcount {
-					w.updateSnapshot()
-				}
-			} else {
-				// Special case, if the consensus engine is 0 period clique(dev mode),
-				// submit mining work here since all empty submission will be rejected
-				// by clique. Of course the advance sealing(empty submission) is disabled.
-				if w.chainConfig.Clique != nil && w.chainConfig.Clique.Period == 0 {
-					w.commitNewWork(nil, true, time.Now().Unix())
-				}
+				// // Only update the snapshot if any new transactons were added
+				// // to the pending block
+				// if tcount != w.current.tcount {
+				// 	w.updateSnapshot()
+				// }
 			}
+			// } else {
+			// 	// Special case, if the consensus engine is 0 period clique(dev mode),
+			// 	// submit mining work here since all empty submission will be rejected
+			// 	// by clique. Of course the advance sealing(empty submission) is disabled.
+			// 	if w.chainConfig.Clique != nil && w.chainConfig.Clique.Period == 0 {
+			// 		w.commitNewWork(nil, true, time.Now().Unix())
+			// 	}
+			// }
 			atomic.AddInt32(&w.newTxs, int32(len(ev.Txs)))
 
 		// System stopped
@@ -680,13 +681,13 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 		header:    header,
 	}
 	// when 08 is processed ancestors contain 07 (quick block)
-	for _, ancestor := range w.chain.GetBlocksFromHash(parent.Hash(), 7) {
-		for _, uncle := range ancestor.Uncles() {
-			env.family.Add(uncle.Hash())
-		}
-		env.family.Add(ancestor.Hash())
-		env.ancestors.Add(ancestor.Hash())
-	}
+	// for _, ancestor := range w.chain.GetBlocksFromHash(parent.Hash(), 7) {
+	// 	for _, uncle := range ancestor.Uncles() {
+	// 		env.family.Add(uncle.Hash())
+	// 	}
+	// 	env.family.Add(ancestor.Hash())
+	// 	env.ancestors.Add(ancestor.Hash())
+	// }
 	// Keep track of transactions which return errors so they can be removed
 	env.tcount = 0
 
@@ -699,57 +700,57 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 	return nil
 }
 
-// commitUncle adds the given block to uncle block set, returns error if failed to add.
-func (w *worker) commitUncle(env *environment, uncle *types.Header) error {
-	hash := uncle.Hash()
-	if env.uncles.Contains(hash) {
-		return errors.New("uncle not unique")
-	}
-	if env.header.ParentHash == uncle.ParentHash {
-		return errors.New("uncle is sibling")
-	}
-	if !env.ancestors.Contains(uncle.ParentHash) {
-		return errors.New("uncle's parent unknown")
-	}
-	if env.family.Contains(hash) {
-		return errors.New("uncle already included")
-	}
-	env.uncles.Add(uncle.Hash())
-	return nil
-}
+// // commitUncle adds the given block to uncle block set, returns error if failed to add.
+// func (w *worker) commitUncle(env *environment, uncle *types.Header) error {
+// 	hash := uncle.Hash()
+// 	if env.uncles.Contains(hash) {
+// 		return errors.New("uncle not unique")
+// 	}
+// 	if env.header.ParentHash == uncle.ParentHash {
+// 		return errors.New("uncle is sibling")
+// 	}
+// 	if !env.ancestors.Contains(uncle.ParentHash) {
+// 		return errors.New("uncle's parent unknown")
+// 	}
+// 	if env.family.Contains(hash) {
+// 		return errors.New("uncle already included")
+// 	}
+// 	env.uncles.Add(uncle.Hash())
+// 	return nil
+// }
 
-// updateSnapshot updates pending snapshot block and state.
-// Note this function assumes the current variable is thread safe.
-func (w *worker) updateSnapshot() {
-	w.snapshotMu.Lock()
-	defer w.snapshotMu.Unlock()
+// // updateSnapshot updates pending snapshot block and state.
+// // Note this function assumes the current variable is thread safe.
+// func (w *worker) updateSnapshot() {
+// 	w.snapshotMu.Lock()
+// 	defer w.snapshotMu.Unlock()
 
-	var uncles []*types.Header
-	w.current.uncles.Each(func(item interface{}) bool {
-		hash, ok := item.(common.Hash)
-		if !ok {
-			return false
-		}
-		uncle, exist := w.localUncles[hash]
-		if !exist {
-			uncle, exist = w.remoteUncles[hash]
-		}
-		if !exist {
-			return false
-		}
-		uncles = append(uncles, uncle.Header())
-		return false
-	})
+// 	var uncles []*types.Header
+// 	w.current.uncles.Each(func(item interface{}) bool {
+// 		hash, ok := item.(common.Hash)
+// 		if !ok {
+// 			return false
+// 		}
+// 		uncle, exist := w.localUncles[hash]
+// 		if !exist {
+// 			uncle, exist = w.remoteUncles[hash]
+// 		}
+// 		if !exist {
+// 			return false
+// 		}
+// 		uncles = append(uncles, uncle.Header())
+// 		return false
+// 	})
 
-	w.snapshotBlock = types.NewBlock(
-		w.current.header,
-		w.current.txs,
-		uncles,
-		w.current.receipts,
-		trie.NewStackTrie(nil),
-	)
-	w.snapshotState = w.current.state.Copy()
-}
+// 	w.snapshotBlock = types.NewBlock(
+// 		w.current.header,
+// 		w.current.txs,
+// 		uncles,
+// 		w.current.receipts,
+// 		trie.NewStackTrie(nil),
+// 	)
+// 	w.snapshotState = w.current.state.Copy()
+// }
 
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, *types.Receipt, error) {
 	snap := w.current.state.Snapshot()
@@ -1012,12 +1013,13 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	// 	}
 	// }
 	// w.commit(uncles, w.fullTaskHook, true, tstart)
-	w.commit(nil, w.fullTaskHook, true, tstart)
+	w.commit(nil, w.fullTaskHook, tstart)
 }
 
 // commit runs any post-transaction state modifications, assembles the final block
 // and commits new work if consensus engine is running.
-func (w *worker) commit(uncles []*types.Header, interval func(), update bool, start time.Time) error {
+// func (w *worker) commit(uncles []*types.Header, interval func(), update bool, start time.Time) error {
+func (w *worker) commit(uncles []*types.Header, interval func(), start time.Time) error {
 	// Deep copy receipts here to avoid interaction between different tasks.
 	receipts := copyReceipts(w.current.receipts)
 	s := w.current.state.Copy()
@@ -1041,9 +1043,9 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 			log.Info("Worker has exited")
 		}
 	}
-	if update {
-		w.updateSnapshot()
-	}
+	// if update {
+	// 	w.updateSnapshot()
+	// }
 	return nil
 }
 
