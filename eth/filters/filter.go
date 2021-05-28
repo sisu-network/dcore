@@ -22,10 +22,10 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/bloombits"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/sisu-network/dcore/core"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/rpc"
 )

@@ -19,10 +19,10 @@ package tracers
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/consensus"
+	"github.com/sisu-network/dcore/core"
 )
 
 var (
