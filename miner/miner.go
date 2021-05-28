@@ -54,14 +54,15 @@ type Config struct {
 
 // Miner creates blocks and searches for proof-of-work values.
 type Miner struct {
-	mux      *event.TypeMux
-	worker   *worker
-	coinbase common.Address
-	eth      Backend
-	engine   consensus.Engine
-	exitCh   chan struct{}
-	startCh  chan common.Address
-	stopCh   chan struct{}
+	// mux      *event.TypeMux
+	// coinbase common.Address
+	// eth      Backend
+	// engine   consensus.Engine
+	// exitCh   chan struct{}
+	// startCh  chan common.Address
+	// stopCh   chan struct{}
+
+	worker *worker
 }
 
 func New(eth Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
