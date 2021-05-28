@@ -16,3 +16,4 @@
 7) Intermediate root hash.
 
 8) Remove core/vm/contracts_stateful.go
+9) Use min gas price in gasprice.go
