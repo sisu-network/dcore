@@ -18,6 +18,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"sort"
@@ -551,6 +552,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// Make sure the transaction is signed properly.
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
+		fmt.Println("TxPool: Validation failed: ", err)
 		return ErrInvalidSender
 	}
 	// Drop non-local transactions under our own minimal accepted gas price
@@ -825,6 +827,9 @@ func (pool *TxPool) addTxs(txs []*types.Transaction, local, sync bool) []error {
 		// obtaining lock
 		_, err := types.Sender(pool.signer, tx)
 		if err != nil {
+			fmt.Printf("%T", pool.signer)
+			fmt.Println()
+			fmt.Println("TxPool-addTxs: Adding txs failed: ", err)
 			errs[i] = ErrInvalidSender
 			invalidTxMeter.Mark(1)
 			continue
