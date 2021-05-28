@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/consensus"
@@ -71,8 +70,8 @@ type Ethereum struct {
 	txPool     *core.TxPool
 	blockchain *core.BlockChain
 	// handler            *handler
-	ethDialCandidates  enode.Iterator
-	snapDialCandidates enode.Iterator
+	// ethDialCandidates  enode.Iterator
+	// snapDialCandidates enode.Iterator
 
 	// DB interfaces
 	chainDb ethdb.Database // Block chain database
@@ -277,18 +276,18 @@ func New(stack *node.Node, config *ethconfig.Config,
 	// stack.RegisterProtocols(eth.Protocols())
 	// stack.RegisterLifecycle(eth)
 	// Check for unclean shutdown
-	if uncleanShutdowns, discards, err := rawdb.PushUncleanShutdownMarker(chainDb); err != nil {
-		log.Error("Could not update unclean-shutdown-marker list", "error", err)
-	} else {
-		if discards > 0 {
-			log.Warn("Old unclean shutdowns found", "count", discards)
-		}
-		for _, tstamp := range uncleanShutdowns {
-			t := time.Unix(int64(tstamp), 0)
-			log.Warn("Unclean shutdown detected", "booted", t,
-				"age", common.PrettyAge(t))
-		}
-	}
+	// if uncleanShutdowns, discards, err := rawdb.PushUncleanShutdownMarker(chainDb); err != nil {
+	// 	log.Error("Could not update unclean-shutdown-marker list", "error", err)
+	// } else {
+	// 	if discards > 0 {
+	// 		log.Warn("Old unclean shutdowns found", "count", discards)
+	// 	}
+	// 	for _, tstamp := range uncleanShutdowns {
+	// 		t := time.Unix(int64(tstamp), 0)
+	// 		log.Warn("Unclean shutdown detected", "booted", t,
+	// 			"age", common.PrettyAge(t))
+	// 	}
+	// }
 	return eth, nil
 }
 
@@ -500,7 +499,8 @@ func (s *Ethereum) StartMining() error {
 		// introduced to speed sync times.
 		// atomic.StoreUint32(&s.handler.acceptTxs, 1)
 
-		go s.miner.Start(eb)
+		// go s.miner.Start(eb)
+		s.miner.Start(eb)
 	}
 	return nil
 }
@@ -508,13 +508,14 @@ func (s *Ethereum) StartMining() error {
 // StopMining terminates the miner, both at the consensus engine level as well as
 // at the block creation level.
 func (s *Ethereum) StopMining() {
-	// Update the thread count within the consensus engine
-	type threaded interface {
-		SetThreads(threads int)
-	}
-	if th, ok := s.engine.(threaded); ok {
-		th.SetThreads(-1)
-	}
+	// // Update the thread count within the consensus engine
+	// type threaded interface {
+	// 	SetThreads(threads int)
+	// }
+	// if th, ok := s.engine.(threaded); ok {
+	// 	th.SetThreads(-1)
+	// }
+
 	// Stop the block creating itself
 	s.miner.Stop()
 }
@@ -569,8 +570,8 @@ func (s *Ethereum) Start() error {
 // Ethereum protocol.
 func (s *Ethereum) Stop() error {
 	// Stop all the peer-related stuff first.
-	s.ethDialCandidates.Close()
-	s.snapDialCandidates.Close()
+	// s.ethDialCandidates.Close()
+	// s.snapDialCandidates.Close()
 	// s.handler.Stop()
 
 	// Then stop everything else.
@@ -580,7 +581,7 @@ func (s *Ethereum) Stop() error {
 	s.miner.Stop()
 	s.blockchain.Stop()
 	s.engine.Close()
-	rawdb.PopUncleanShutdownMarker(s.chainDb)
+	// rawdb.PopUncleanShutdownMarker(s.chainDb)
 	s.chainDb.Close()
 	s.eventMux.Stop()
 

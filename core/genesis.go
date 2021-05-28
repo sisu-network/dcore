@@ -192,7 +192,8 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, override
 		}
 	}
 	// Get the existing chain configuration.
-	newcfg := genesis.configOrDefault(stored)
+	// newcfg := genesis.configOrDefault(stored)
+	newcfg := genesis.Config
 	if overrideBerlin != nil {
 		newcfg.BerlinBlock = overrideBerlin
 	}
@@ -205,12 +206,13 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, override
 		rawdb.WriteChainConfig(db, stored, newcfg)
 		return newcfg, stored, nil
 	}
-	// Special case: don't change the existing config of a non-mainnet chain if no new
-	// config is supplied. These chains would get AllProtocolChanges (and a compat error)
-	// if we just continued here.
-	if genesis == nil && stored != params.MainnetGenesisHash {
-		return storedcfg, stored, nil
-	}
+	// // Special case: don't change the existing config of a non-mainnet chain if no new
+	// // config is supplied. These chains would get AllProtocolChanges (and a compat error)
+	// // if we just continued here.
+	// if genesis == nil && stored != params.MainnetGenesisHash {
+	// 	return storedcfg, stored, nil
+	// }
+
 	// Check config compatibility and write the config. Compatibility errors
 	// are returned to the caller unless we're already at block zero.
 	height := rawdb.ReadHeaderNumber(db, rawdb.ReadHeadHeaderHash(db))
@@ -225,24 +227,24 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, override
 	return newcfg, stored, nil
 }
 
-func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
-	switch {
-	case g != nil:
-		return g.Config
-	case ghash == params.MainnetGenesisHash:
-		return params.MainnetChainConfig
-	case ghash == params.RopstenGenesisHash:
-		return params.RopstenChainConfig
-	case ghash == params.RinkebyGenesisHash:
-		return params.RinkebyChainConfig
-	case ghash == params.GoerliGenesisHash:
-		return params.GoerliChainConfig
-	case ghash == params.YoloV3GenesisHash:
-		return params.YoloV3ChainConfig
-	default:
-		return params.AllEthashProtocolChanges
-	}
-}
+// func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
+// 	switch {
+// 	case g != nil:
+// 		return g.Config
+// 	case ghash == params.MainnetGenesisHash:
+// 		return params.MainnetChainConfig
+// 	case ghash == params.RopstenGenesisHash:
+// 		return params.RopstenChainConfig
+// 	case ghash == params.RinkebyGenesisHash:
+// 		return params.RinkebyChainConfig
+// 	case ghash == params.GoerliGenesisHash:
+// 		return params.GoerliChainConfig
+// 	case ghash == params.YoloV3GenesisHash:
+// 		return params.YoloV3ChainConfig
+// 	default:
+// 		return params.AllEthashProtocolChanges
+// 	}
+// }
 
 // ToBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).

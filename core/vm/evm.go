@@ -60,19 +60,23 @@ func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
 
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(evm *EVM, contract *Contract, input []byte, readOnly bool) ([]byte, error) {
-	for _, interpreter := range evm.interpreters {
-		if interpreter.CanRun(contract.Code) {
-			if evm.interpreter != interpreter {
-				// Ensure that the interpreter pointer is set back
-				// to its current value upon return.
-				defer func(i Interpreter) {
-					evm.interpreter = i
-				}(evm.interpreter)
-				evm.interpreter = interpreter
-			}
-			return interpreter.Run(contract, input, readOnly)
-		}
+	if evm.interpreter.CanRun(contract.Code) {
+		return evm.interpreter.Run(contract, input, readOnly)
 	}
+
+	// for _, interpreter := range evm.interpreters {
+	// 	if interpreter.CanRun(contract.Code) {
+	// 		if evm.interpreter != interpreter {
+	// 			// Ensure that the interpreter pointer is set back
+	// 			// to its current value upon return.
+	// 			defer func(i Interpreter) {
+	// 				evm.interpreter = i
+	// 			}(evm.interpreter)
+	// 			evm.interpreter = interpreter
+	// 		}
+	// 		return interpreter.Run(contract, input, readOnly)
+	// 	}
+	// }
 	return nil, errors.New("no compatible interpreter")
 }
 
