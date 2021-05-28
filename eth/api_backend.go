@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/eth/downloader"
@@ -39,6 +40,11 @@ import (
 	"github.com/sisu-network/dcore/rpc"
 )
 
+var (
+	ErrUnfinalizedData = errors.New("cannot query unfinalized data")
+	errExpired         = errors.New("request expired")
+)
+
 // EthAPIBackend implements ethapi.Backend for full nodes
 type EthAPIBackend struct {
 	extRPCEnabled       bool
@@ -52,6 +58,10 @@ func (b *EthAPIBackend) ChainConfig() *params.ChainConfig {
 	return b.eth.blockchain.Config()
 }
 
+func (b *EthAPIBackend) GetVMConfig() *vm.Config {
+	return b.eth.blockchain.GetVMConfig()
+}
+
 func (b *EthAPIBackend) CurrentBlock() *types.Block {
 	return b.eth.blockchain.CurrentBlock()
 }
@@ -62,15 +72,22 @@ func (b *EthAPIBackend) CurrentBlock() *types.Block {
 // }
 
 func (b *EthAPIBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Header, error) {
-	// Pending block is only known by the miner
-	if number == rpc.PendingBlockNumber {
-		block := b.eth.miner.PendingBlock()
-		return block.Header(), nil
+	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
+		return nil, errExpired
 	}
-	// Otherwise resolve and return the block
-	if number == rpc.LatestBlockNumber {
-		return b.eth.blockchain.CurrentBlock().Header(), nil
+	// Treat requests for the pending, latest, or accepted block
+	// identically.
+	acceptedBlock := b.eth.LastAcceptedBlock()
+	if number.IsAccepted() {
+		return acceptedBlock.Header(), nil
 	}
+
+	if !b.GetVMConfig().AllowUnfinalizedQueries && acceptedBlock != nil {
+		if number.Int64() > acceptedBlock.Number().Int64() {
+			return nil, ErrUnfinalizedData
+		}
+	}
+
 	return b.eth.blockchain.GetHeaderByNumber(uint64(number)), nil
 }
 
@@ -96,15 +113,22 @@ func (b *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*ty
 }
 
 func (b *EthAPIBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Block, error) {
-	// Pending block is only known by the miner
-	if number == rpc.PendingBlockNumber {
-		block := b.eth.miner.PendingBlock()
-		return block, nil
+	if deadline, exists := ctx.Deadline(); exists && time.Until(deadline) < 0 {
+		return nil, errExpired
 	}
-	// Otherwise resolve and return the block
-	if number == rpc.LatestBlockNumber {
-		return b.eth.blockchain.CurrentBlock(), nil
+	// Treat requests for the pending, latest, or accepted block
+	// identically.
+	acceptedBlock := b.eth.LastAcceptedBlock()
+	if number.IsAccepted() {
+		return b.eth.LastAcceptedBlock(), nil
 	}
+
+	if !b.GetVMConfig().AllowUnfinalizedQueries && acceptedBlock != nil {
+		if number.Int64() > acceptedBlock.Number().Int64() {
+			return nil, ErrUnfinalizedData
+		}
+	}
+
 	return b.eth.blockchain.GetBlockByNumber(uint64(number)), nil
 }
 
@@ -134,12 +158,7 @@ func (b *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash r
 }
 
 func (b *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
-	// Pending state is only known by the miner
-	if number == rpc.PendingBlockNumber {
-		block, state := b.eth.miner.Pending()
-		return state, block.Header(), nil
-	}
-	// Otherwise resolve the block number and return its state
+	// Request the block by its number and retrieve its state
 	header, err := b.HeaderByNumber(ctx, number)
 	if err != nil {
 		return nil, nil, err
