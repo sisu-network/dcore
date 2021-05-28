@@ -52,7 +52,6 @@ type OracleBackend interface {
 type Oracle struct {
 	backend     OracleBackend
 	lastHead    common.Hash
-	lastPrice   *big.Int
 	maxPrice    *big.Int
 	minGasPrice *big.Int
 	cacheLock   sync.RWMutex
@@ -86,7 +85,7 @@ func NewOracle(backend OracleBackend, params Config) *Oracle {
 	}
 	return &Oracle{
 		backend:     backend,
-		lastPrice:   params.Default,
+		minGasPrice: params.Default,
 		maxPrice:    maxPrice,
 		checkBlocks: blocks,
 		percentile:  percent,
