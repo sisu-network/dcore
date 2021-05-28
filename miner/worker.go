@@ -342,6 +342,7 @@ func recalcRecommit(minRecommit, prev time.Duration, target float64, inc bool) t
 func (w *worker) genBlock() {
 	interrupt := new(int32)
 	*interrupt = commitInterruptNone
+	fmt.Println("Worker: Generating block...")
 	select {
 	case w.newWorkCh <- &newWorkReq{
 		interrupt: interrupt,
@@ -460,6 +461,7 @@ func (w *worker) mainLoop() {
 	for {
 		select {
 		case req := <-w.newWorkCh:
+			fmt.Println("Worker-mainloop: committing new work...")
 			w.commitNewWork(req.interrupt, req.noempty, req.timestamp)
 
 			// case ev := <-w.chainSideCh:
@@ -571,6 +573,7 @@ func (w *worker) taskLoop() {
 	for {
 		select {
 		case task := <-w.taskCh:
+			fmt.Println("Worker-taskloop: There is a new task...")
 			if w.newTaskHook != nil {
 				w.newTaskHook(task)
 			}
@@ -597,6 +600,9 @@ func (w *worker) taskLoop() {
 			w.pendingTasks[sealHash] = task
 			w.pendingMu.Unlock()
 
+			fmt.Println("Worker-taskloop: Engine sealing....")
+			fmt.Printf("%T", w.engine)
+			fmt.Println()
 			if err := w.engine.Seal(w.chain, task.block, w.resultCh, stopCh); err != nil {
 				log.Warn("Block sealing failed", "err", err)
 			}
@@ -613,6 +619,7 @@ func (w *worker) resultLoop() {
 	for {
 		select {
 		case block := <-w.resultCh:
+			fmt.Println("Worker-resultLoop: There is a new block result")
 			// Short circuit when receiving empty result.
 			if block == nil {
 				continue
@@ -628,6 +635,7 @@ func (w *worker) resultLoop() {
 			w.pendingMu.RLock()
 			task, exist := w.pendingTasks[sealhash]
 			w.pendingMu.RUnlock()
+			fmt.Println("Worker-resultLoop: Receipts length = ", len(task.receipts))
 			if !exist {
 				log.Error("Block found but no relative pending task", "number", block.Number(), "sealhash", sealhash, "hash", hash)
 				continue
@@ -1038,15 +1046,22 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 func (w *worker) commit(uncles []*types.Header, interval func(), start time.Time) error {
 	// Deep copy receipts here to avoid interaction between different tasks.
 	receipts := copyReceipts(w.current.receipts)
+	fmt.Println("Worker-commit: receipts length = ", len(receipts))
+
 	s := w.current.state.Copy()
+	fmt.Println("Worker-commit: FinalizeAndAssemble...")
 	block, err := w.engine.FinalizeAndAssemble(w.chain, w.current.header, s, w.current.txs, uncles, receipts)
 	if err != nil {
+		fmt.Println("Worker-commit: err = ", err)
 		return err
 	}
+	fmt.Println("Worker-commit: w.isRunning()  = ", w.isRunning())
+
 	if w.isRunning() {
 		if interval != nil {
 			interval()
 		}
+		fmt.Println("Worker-commit: Sending new task to task channel....")
 		select {
 		case w.taskCh <- &task{receipts: receipts, state: s, block: block, createdAt: time.Now()}:
 			w.unconfirmed.Shift(block.NumberU64() - 1)
