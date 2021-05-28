@@ -30,7 +30,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 )
 
@@ -180,19 +179,19 @@ func (miner *Miner) SetRecommitInterval(interval time.Duration) {
 	miner.worker.setRecommitInterval(interval)
 }
 
-// Pending returns the currently pending block and associated state.
-func (miner *Miner) Pending() (*types.Block, *state.StateDB) {
-	return miner.worker.pending()
-}
+// // Pending returns the currently pending block and associated state.
+// func (miner *Miner) Pending() (*types.Block, *state.StateDB) {
+// 	return miner.worker.pending()
+// }
 
-// PendingBlock returns the currently pending block.
-//
-// Note, to access both the pending block and the pending state
-// simultaneously, please use Pending(), as the pending state can
-// change between multiple method calls
-func (miner *Miner) PendingBlock() *types.Block {
-	return miner.worker.pendingBlock()
-}
+// // PendingBlock returns the currently pending block.
+// //
+// // Note, to access both the pending block and the pending state
+// // simultaneously, please use Pending(), as the pending state can
+// // change between multiple method calls
+// func (miner *Miner) PendingBlock() *types.Block {
+// 	return miner.worker.pendingBlock()
+// }
 
 func (miner *Miner) SetEtherbase(addr common.Address) {
 	miner.coinbase = addr
@@ -220,4 +219,20 @@ func (miner *Miner) DisablePreseal() {
 // to the given channel.
 func (miner *Miner) SubscribePendingLogs(ch chan<- []*types.Log) event.Subscription {
 	return miner.worker.pendingLogsFeed.Subscribe(ch)
+}
+
+func (miner *Miner) GenBlock() {
+	miner.worker.genBlock()
+}
+
+func (miner *Miner) GetWorkerMux() *event.TypeMux {
+	return miner.worker.mux
+}
+
+func (miner *Miner) PrepareNewBlock() {
+	miner.worker.PrepareNewBlock()
+}
+
+func (miner *Miner) ExecuteTxSync(tx *types.Transaction) (*types.Receipt, common.Hash, error) {
+	return miner.worker.ExecuteTxSync(tx)
 }

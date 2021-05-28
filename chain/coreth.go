@@ -43,7 +43,7 @@ type ETHChain struct {
 // NewETHChain creates an Ethereum blockchain with the given configs.
 func NewETHChain(config *eth.Config, nodecfg *node.Config, chainDB ethdb.Database, settings eth.Settings, initGenesis bool, onTxSubmitted func(*types.Transaction) error) *ETHChain {
 	if config == nil {
-		config = &ethconfig.DefaultConfig
+		config = &ethconfig.Defaults
 	}
 	if nodecfg == nil {
 		nodecfg = &node.Config{}

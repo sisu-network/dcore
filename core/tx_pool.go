@@ -371,7 +371,7 @@ func (pool *TxPool) loop() {
 				if time.Since(pool.beats[addr]) > pool.config.Lifetime {
 					list := pool.queue[addr].Flatten()
 					for _, tx := range list {
-						pool.removeTx(tx.Hash(), true)
+						pool.RemoveTx(tx.Hash(), true)
 					}
 					queuedEvictionMeter.Mark(int64(len(list)))
 				}
@@ -428,7 +428,7 @@ func (pool *TxPool) SetGasPrice(price *big.Int) {
 
 	pool.gasPrice = price
 	for _, tx := range pool.priced.Cap(price) {
-		pool.removeTx(tx.Hash(), false)
+		pool.RemoveTx(tx.Hash(), false)
 	}
 	log.Info("Transaction pool price threshold updated", "price", price)
 }
@@ -617,7 +617,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 		for _, tx := range drop {
 			log.Trace("Discarding freshly underpriced transaction", "hash", tx.Hash(), "price", tx.GasPrice())
 			underpricedTxMeter.Mark(1)
-			pool.removeTx(tx.Hash(), false)
+			pool.RemoveTx(tx.Hash(), false)
 		}
 	}
 	// Try to replace an existing transaction in the pending pool
@@ -901,7 +901,7 @@ func (pool *TxPool) Has(hash common.Hash) bool {
 
 // removeTx removes a single transaction from the queue, moving all subsequent
 // transactions back to the future queue.
-func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
+func (pool *TxPool) RemoveTx(hash common.Hash, outofbound bool) {
 	// Fetch the transaction we wish to delete
 	tx := pool.all.Get(hash)
 	if tx == nil {
@@ -1389,7 +1389,7 @@ func (pool *TxPool) truncateQueue() {
 		// Drop all transactions if they are less than the overflow
 		if size := uint64(list.Len()); size <= drop {
 			for _, tx := range list.Flatten() {
-				pool.removeTx(tx.Hash(), true)
+				pool.RemoveTx(tx.Hash(), true)
 			}
 			drop -= size
 			queuedRateLimitMeter.Mark(int64(size))
@@ -1398,7 +1398,7 @@ func (pool *TxPool) truncateQueue() {
 		// Otherwise drop only last few transactions
 		txs := list.Flatten()
 		for i := len(txs) - 1; i >= 0 && drop > 0; i-- {
-			pool.removeTx(txs[i].Hash(), true)
+			pool.RemoveTx(txs[i].Hash(), true)
 			drop--
 			queuedRateLimitMeter.Mark(1)
 		}
@@ -1460,6 +1460,10 @@ func (pool *TxPool) demoteUnexecutables() {
 			delete(pool.pending, addr)
 		}
 	}
+}
+
+func (pool *TxPool) GetAddressFromTx(tx *types.Transaction) (common.Address, error) {
+	return types.Sender(pool.signer, tx)
 }
 
 // addressByHeartbeat is an account address tagged with its last activity timestamp.
