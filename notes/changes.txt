@@ -20,3 +20,4 @@
 
 10) Add w.minerCallbacks.OnSealFinish in worker.go
 11) Add callback OnTxSubmitted in SubmitTransaction
+12) Carefule with filter_system.go
