@@ -27,7 +27,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/bloombits"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/eth/ethconfig"
@@ -45,6 +44,7 @@ import (
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/consensus/dummy"
 	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/bloombits"
 	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/internal/ethapi"
