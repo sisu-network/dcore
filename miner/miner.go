@@ -27,10 +27,10 @@ import (
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core"
 	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 // Backend wraps all methods required for mining.

@@ -49,7 +49,7 @@ func init() {
 
 func NewDefaultChain(t *testing.T) (*ETHChain, chan *types.Block, chan core.NewTxPoolHeadEvent, <-chan core.NewTxsEvent) {
 	// configure the chain
-	config := ethconfig.NewDefaultConfig()
+	config := ethconfig.Defaults
 	chainConfig := &params.ChainConfig{
 		ChainID:             chainID,
 		HomesteadBlock:      big.NewInt(0),

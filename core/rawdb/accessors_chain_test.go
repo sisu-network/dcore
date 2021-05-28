@@ -28,9 +28,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 	"golang.org/x/crypto/sha3"
 )
 

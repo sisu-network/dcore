@@ -33,7 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core"
@@ -41,6 +40,7 @@ import (
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 	"github.com/sisu-network/dcore/rpc"
 )
 

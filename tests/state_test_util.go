@@ -29,7 +29,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/core"
 	"github.com/sisu-network/dcore/core/rawdb"
@@ -37,6 +36,7 @@ import (
 	"github.com/sisu-network/dcore/core/state/snapshot"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 	"golang.org/x/crypto/sha3"
 )
 

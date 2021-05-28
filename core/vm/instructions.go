@@ -18,9 +18,9 @@ package vm
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 	"golang.org/x/crypto/sha3"
 )
 
