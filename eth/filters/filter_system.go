@@ -26,10 +26,10 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/sisu-network/dcore/core"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/rpc"
 )
