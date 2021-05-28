@@ -28,14 +28,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/ethconfig"
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p/dnsdisc"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -47,8 +44,10 @@ import (
 	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/eth/ethconfig"
 	"github.com/sisu-network/dcore/internal/ethapi"
 	"github.com/sisu-network/dcore/miner"
+	"github.com/sisu-network/dcore/node"
 	"github.com/sisu-network/dcore/rpc"
 )
 
@@ -62,7 +61,7 @@ type Settings struct {
 
 // Ethereum implements the Ethereum full node service.
 type Ethereum struct {
-	config *ethconfig.Config
+	config *Config
 
 	// Handlers
 	txPool     *core.TxPool
@@ -128,17 +127,22 @@ func New(stack *node.Node, config *ethconfig.Config,
 	}
 	log.Info("Allocated trie memory caches", "clean", common.StorageSize(config.TrieCleanCache)*1024*1024, "dirty", common.StorageSize(config.TrieDirtyCache)*1024*1024)
 
-	// Transfer mining-related config to the ethash config.
-	ethashConfig := config.Ethash
-	ethashConfig.NotifyFull = config.Miner.NotifyFull
+	// // Transfer mining-related config to the ethash config.
+	// ethashConfig := config.Ethash
+	// ethashConfig.NotifyFull = config.Miner.NotifyFull
 
-	// Assemble the Ethereum object
-	chainDb, err := stack.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "eth/db/chaindata/", false)
-	if err != nil {
-		return nil, err
-	}
-	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis, config.OverrideBerlin)
-	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
+	// // Assemble the Ethereum object
+	// chainDb, err := stack.OpenDatabaseWithFreezer("chaindata", config.DatabaseCache, config.DatabaseHandles, config.DatabaseFreezer, "eth/db/chaindata/", false)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis, config.OverrideBerlin)
+	// if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
+	// 	return nil, genesisErr
+	// }
+
+	chainConfig, _, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
+	if genesisErr != nil {
 		return nil, genesisErr
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
@@ -186,8 +190,8 @@ func New(stack *node.Node, config *ethconfig.Config,
 			EVMInterpreter:          config.EVMInterpreter,
 		}
 		cacheConfig = &core.CacheConfig{
-			TrieCleanLimit:      config.TrieCleanCache,
-			TrieCleanJournal:    stack.ResolvePath(config.TrieCleanCacheJournal),
+			TrieCleanLimit: config.TrieCleanCache,
+			// TrieCleanJournal:    stack.ResolvePath(config.TrieCleanCacheJournal),
 			TrieCleanRejournal:  config.TrieCleanCacheRejournal,
 			TrieCleanNoPrefetch: config.NoPrefetch,
 			TrieDirtyLimit:      config.TrieDirtyCache,
@@ -197,6 +201,7 @@ func New(stack *node.Node, config *ethconfig.Config,
 			Preimages:           config.Preimages,
 		}
 	)
+	var err error
 	eth.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, eth.engine, vmConfig, eth.shouldPreserve, &config.TxLookupLimit)
 	if err != nil {
 		return nil, err
@@ -209,17 +214,18 @@ func New(stack *node.Node, config *ethconfig.Config,
 	// }
 	eth.bloomIndexer.Start(eth.blockchain)
 
-	if config.TxPool.Journal != "" {
-		config.TxPool.Journal = stack.ResolvePath(config.TxPool.Journal)
-	}
+	// Original code (requires disk):
+	// if config.TxPool.Journal != "" {
+	// 	config.TxPool.Journal = stack.ResolvePath(config.TxPool.Journal)
+	// }
 	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain)
 
-	// Permit the downloader to use the trie cache allowance during fast sync
-	// cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit + cacheConfig.SnapshotLimit
-	checkpoint := config.Checkpoint
-	if checkpoint == nil {
-		checkpoint = params.TrustedCheckpoints[genesisHash]
-	}
+	// // Permit the downloader to use the trie cache allowance during fast sync
+	// // cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit + cacheConfig.SnapshotLimit
+	// checkpoint := config.Checkpoint
+	// if checkpoint == nil {
+	// 	checkpoint = params.TrustedCheckpoints[genesisHash]
+	// }
 
 	// if eth.handler, err = newHandler(&handlerConfig{
 	// 	Database:   chainDb,
@@ -248,16 +254,16 @@ func New(stack *node.Node, config *ethconfig.Config,
 	}
 	eth.APIBackend.gpo = gasprice.NewOracle(eth.APIBackend, gpoParams)
 
-	// Setup DNS discovery iterators.
-	dnsclient := dnsdisc.NewClient(dnsdisc.Config{})
-	eth.ethDialCandidates, err = dnsclient.NewIterator(eth.config.EthDiscoveryURLs...)
-	if err != nil {
-		return nil, err
-	}
-	eth.snapDialCandidates, err = dnsclient.NewIterator(eth.config.SnapDiscoveryURLs...)
-	if err != nil {
-		return nil, err
-	}
+	// // Setup DNS discovery iterators.
+	// dnsclient := dnsdisc.NewClient(dnsdisc.Config{})
+	// eth.ethDialCandidates, err = dnsclient.NewIterator(eth.config.EthDiscoveryURLs...)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// eth.snapDialCandidates, err = dnsclient.NewIterator(eth.config.SnapDiscoveryURLs...)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Start the RPC service
 	eth.netRPCService = ethapi.NewPublicNetAPI(config.NetworkId)
@@ -265,7 +271,7 @@ func New(stack *node.Node, config *ethconfig.Config,
 	// Register the backend on the node
 	stack.RegisterAPIs(eth.APIs())
 	// stack.RegisterProtocols(eth.Protocols())
-	stack.RegisterLifecycle(eth)
+	// stack.RegisterLifecycle(eth)
 	// Check for unclean shutdown
 	if uncleanShutdowns, discards, err := rawdb.PushUncleanShutdownMarker(chainDb); err != nil {
 		log.Error("Could not update unclean-shutdown-marker list", "error", err)

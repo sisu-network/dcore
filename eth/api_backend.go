@@ -26,7 +26,6 @@ import (
 	"github.com/ethereum/go-ethereum/eth/gasprice"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/consensus"
@@ -36,6 +35,7 @@ import (
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/miner"
 	"github.com/sisu-network/dcore/rpc"
 )
 

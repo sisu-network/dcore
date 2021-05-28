@@ -14,3 +14,5 @@
 5) Use NewEIP2930Signer:
 6) Execute TX immediately:
 7) Intermediate root hash.
+
+8) Remove core/vm/contracts_stateful.go

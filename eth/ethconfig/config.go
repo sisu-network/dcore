@@ -24,9 +24,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/eth/gasprice"
-	"github.com/ethereum/go-ethereum/miner"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/miner"
 )
 
 // FullNodeGPO contains default gasprice oracle settings for full node.
