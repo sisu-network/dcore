@@ -26,10 +26,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/signer/core"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/rpc"
+	"github.com/sisu-network/dcore/signer/core"
 )
 
 type ExternalBackend struct {
