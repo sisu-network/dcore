@@ -30,7 +30,7 @@ import (
 	"testing/quick"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/types"
 )
 

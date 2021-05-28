@@ -30,7 +30,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
@@ -39,6 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/rpc"

@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/bitutil"
-	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/sisu-network/dcore/core/rawdb"
 )
 
 const (

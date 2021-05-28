@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/consensus/dummy"
+	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/types"
 )
 
