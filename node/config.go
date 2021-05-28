@@ -17,33 +17,26 @@
 package node
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
-	"strings"
-	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/accounts/external"
 	"github.com/sisu-network/dcore/accounts/keystore"
 	"github.com/sisu-network/dcore/rpc"
 )
 
-const (
-	datadirPrivateKey      = "nodekey"            // Path within the datadir to the node's private key
-	datadirDefaultKeyStore = "keystore"           // Path within the datadir to the keystore
-	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
-	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
-	datadirNodeDatabase    = "nodes"              // Path within the datadir to store the node infos
-)
+// const (
+// 	datadirPrivateKey      = "nodekey"            // Path within the datadir to the node's private key
+// 	datadirDefaultKeyStore = "keystore"           // Path within the datadir to the keystore
+// 	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
+// 	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
+// 	datadirNodeDatabase    = "nodes"              // Path within the datadir to store the node infos
+// )
 
 // Config represents a small collection of configuration values to fine tune the
 // P2P network layer of a protocol stack. These values can be further extended by
@@ -196,50 +189,50 @@ type Config struct {
 	DcoreVersion string
 }
 
-// IPCEndpoint resolves an IPC endpoint based on a configured value, taking into
-// account the set data folders as well as the designated platform we're currently
-// running on.
-func (c *Config) IPCEndpoint() string {
-	// Short circuit if IPC has not been enabled
-	if c.IPCPath == "" {
-		return ""
-	}
-	// On windows we can only use plain top-level pipes
-	if runtime.GOOS == "windows" {
-		if strings.HasPrefix(c.IPCPath, `\\.\pipe\`) {
-			return c.IPCPath
-		}
-		return `\\.\pipe\` + c.IPCPath
-	}
-	// Resolve names into the data directory full paths otherwise
-	if filepath.Base(c.IPCPath) == c.IPCPath {
-		if c.DataDir == "" {
-			return filepath.Join(os.TempDir(), c.IPCPath)
-		}
-		return filepath.Join(c.DataDir, c.IPCPath)
-	}
-	return c.IPCPath
-}
+// // IPCEndpoint resolves an IPC endpoint based on a configured value, taking into
+// // account the set data folders as well as the designated platform we're currently
+// // running on.
+// func (c *Config) IPCEndpoint() string {
+// 	// Short circuit if IPC has not been enabled
+// 	if c.IPCPath == "" {
+// 		return ""
+// 	}
+// 	// On windows we can only use plain top-level pipes
+// 	if runtime.GOOS == "windows" {
+// 		if strings.HasPrefix(c.IPCPath, `\\.\pipe\`) {
+// 			return c.IPCPath
+// 		}
+// 		return `\\.\pipe\` + c.IPCPath
+// 	}
+// 	// Resolve names into the data directory full paths otherwise
+// 	if filepath.Base(c.IPCPath) == c.IPCPath {
+// 		if c.DataDir == "" {
+// 			return filepath.Join(os.TempDir(), c.IPCPath)
+// 		}
+// 		return filepath.Join(c.DataDir, c.IPCPath)
+// 	}
+// 	return c.IPCPath
+// }
 
-// NodeDB returns the path to the discovery node database.
-func (c *Config) NodeDB() string {
-	if c.DataDir == "" {
-		return "" // ephemeral
-	}
-	return c.ResolvePath(datadirNodeDatabase)
-}
+// // NodeDB returns the path to the discovery node database.
+// func (c *Config) NodeDB() string {
+// 	if c.DataDir == "" {
+// 		return "" // ephemeral
+// 	}
+// 	return c.ResolvePath(datadirNodeDatabase)
+// }
 
-// DefaultIPCEndpoint returns the IPC path used by default.
-func DefaultIPCEndpoint(clientIdentifier string) string {
-	if clientIdentifier == "" {
-		clientIdentifier = strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
-		if clientIdentifier == "" {
-			panic("empty executable name")
-		}
-	}
-	config := &Config{DataDir: DefaultDataDir(), IPCPath: clientIdentifier + ".ipc"}
-	return config.IPCEndpoint()
-}
+// // DefaultIPCEndpoint returns the IPC path used by default.
+// func DefaultIPCEndpoint(clientIdentifier string) string {
+// 	if clientIdentifier == "" {
+// 		clientIdentifier = strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+// 		if clientIdentifier == "" {
+// 			panic("empty executable name")
+// 		}
+// 	}
+// 	config := &Config{DataDir: DefaultDataDir(), IPCPath: clientIdentifier + ".ipc"}
+// 	return config.IPCEndpoint()
+// }
 
 // HTTPEndpoint resolves an HTTP endpoint based on the configured host interface
 // and port parameters.
@@ -277,157 +270,157 @@ func (c *Config) ExtRPCEnabled() bool {
 	return c.HTTPHost != "" || c.WSHost != ""
 }
 
-// NodeName returns the devp2p node identifier.
-func (c *Config) NodeName() string {
-	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Geth", keep that.
-	if name == "geth" || name == "geth-testnet" {
-		name = "Geth"
-	}
-	if c.UserIdent != "" {
-		name += "/" + c.UserIdent
-	}
-	if c.Version != "" {
-		name += "/v" + c.Version
-	}
-	name += "/" + runtime.GOOS + "-" + runtime.GOARCH
-	name += "/" + runtime.Version()
-	return name
-}
+// // NodeName returns the devp2p node identifier.
+// func (c *Config) NodeName() string {
+// 	name := c.name()
+// 	// Backwards compatibility: previous versions used title-cased "Geth", keep that.
+// 	if name == "geth" || name == "geth-testnet" {
+// 		name = "Geth"
+// 	}
+// 	if c.UserIdent != "" {
+// 		name += "/" + c.UserIdent
+// 	}
+// 	if c.Version != "" {
+// 		name += "/v" + c.Version
+// 	}
+// 	name += "/" + runtime.GOOS + "-" + runtime.GOARCH
+// 	name += "/" + runtime.Version()
+// 	return name
+// }
 
-func (c *Config) name() string {
-	if c.Name == "" {
-		progname := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
-		if progname == "" {
-			panic("empty executable name, set Config.Name")
-		}
-		return progname
-	}
-	return c.Name
-}
+// func (c *Config) name() string {
+// 	if c.Name == "" {
+// 		progname := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+// 		if progname == "" {
+// 			panic("empty executable name, set Config.Name")
+// 		}
+// 		return progname
+// 	}
+// 	return c.Name
+// }
 
-// These resources are resolved differently for "geth" instances.
-var isOldGethResource = map[string]bool{
-	"chaindata":          true,
-	"nodes":              true,
-	"nodekey":            true,
-	"static-nodes.json":  false, // no warning for these because they have their
-	"trusted-nodes.json": false, // own separate warning.
-}
+// // These resources are resolved differently for "geth" instances.
+// var isOldGethResource = map[string]bool{
+// 	"chaindata":          true,
+// 	"nodes":              true,
+// 	"nodekey":            true,
+// 	"static-nodes.json":  false, // no warning for these because they have their
+// 	"trusted-nodes.json": false, // own separate warning.
+// }
 
-// ResolvePath resolves path in the instance directory.
-func (c *Config) ResolvePath(path string) string {
-	if filepath.IsAbs(path) {
-		return path
-	}
-	if c.DataDir == "" {
-		return ""
-	}
-	// Backwards-compatibility: ensure that data directory files created
-	// by geth 1.4 are used if they exist.
-	if warn, isOld := isOldGethResource[path]; isOld {
-		oldpath := ""
-		if c.name() == "geth" {
-			oldpath = filepath.Join(c.DataDir, path)
-		}
-		if oldpath != "" && common.FileExist(oldpath) {
-			if warn {
-				c.warnOnce(&c.oldGethResourceWarning, "Using deprecated resource file %s, please move this file to the 'geth' subdirectory of datadir.", oldpath)
-			}
-			return oldpath
-		}
-	}
-	return filepath.Join(c.instanceDir(), path)
-}
+// // ResolvePath resolves path in the instance directory.
+// func (c *Config) ResolvePath(path string) string {
+// 	if filepath.IsAbs(path) {
+// 		return path
+// 	}
+// 	if c.DataDir == "" {
+// 		return ""
+// 	}
+// 	// Backwards-compatibility: ensure that data directory files created
+// 	// by geth 1.4 are used if they exist.
+// 	if warn, isOld := isOldGethResource[path]; isOld {
+// 		oldpath := ""
+// 		if c.name() == "geth" {
+// 			oldpath = filepath.Join(c.DataDir, path)
+// 		}
+// 		if oldpath != "" && common.FileExist(oldpath) {
+// 			if warn {
+// 				c.warnOnce(&c.oldGethResourceWarning, "Using deprecated resource file %s, please move this file to the 'geth' subdirectory of datadir.", oldpath)
+// 			}
+// 			return oldpath
+// 		}
+// 	}
+// 	return filepath.Join(c.instanceDir(), path)
+// }
 
-func (c *Config) instanceDir() string {
-	if c.DataDir == "" {
-		return ""
-	}
-	return filepath.Join(c.DataDir, c.name())
-}
+// func (c *Config) instanceDir() string {
+// 	if c.DataDir == "" {
+// 		return ""
+// 	}
+// 	return filepath.Join(c.DataDir, c.name())
+// }
 
-// NodeKey retrieves the currently configured private key of the node, checking
-// first any manually set key, falling back to the one found in the configured
-// data folder. If no key can be found, a new one is generated.
-func (c *Config) NodeKey() *ecdsa.PrivateKey {
-	// Use any specifically configured key.
-	if c.P2P.PrivateKey != nil {
-		return c.P2P.PrivateKey
-	}
-	// Generate ephemeral key if no datadir is being used.
-	if c.DataDir == "" {
-		key, err := crypto.GenerateKey()
-		if err != nil {
-			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
-		}
-		return key
-	}
+// // NodeKey retrieves the currently configured private key of the node, checking
+// // first any manually set key, falling back to the one found in the configured
+// // data folder. If no key can be found, a new one is generated.
+// func (c *Config) NodeKey() *ecdsa.PrivateKey {
+// 	// Use any specifically configured key.
+// 	if c.P2P.PrivateKey != nil {
+// 		return c.P2P.PrivateKey
+// 	}
+// 	// Generate ephemeral key if no datadir is being used.
+// 	if c.DataDir == "" {
+// 		key, err := crypto.GenerateKey()
+// 		if err != nil {
+// 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
+// 		}
+// 		return key
+// 	}
 
-	keyfile := c.ResolvePath(datadirPrivateKey)
-	if key, err := crypto.LoadECDSA(keyfile); err == nil {
-		return key
-	}
-	// No persistent key found, generate and store a new one.
-	key, err := crypto.GenerateKey()
-	if err != nil {
-		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
-	}
-	instanceDir := filepath.Join(c.DataDir, c.name())
-	if err := os.MkdirAll(instanceDir, 0700); err != nil {
-		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
-		return key
-	}
-	keyfile = filepath.Join(instanceDir, datadirPrivateKey)
-	if err := crypto.SaveECDSA(keyfile, key); err != nil {
-		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
-	}
-	return key
-}
+// 	keyfile := c.ResolvePath(datadirPrivateKey)
+// 	if key, err := crypto.LoadECDSA(keyfile); err == nil {
+// 		return key
+// 	}
+// 	// No persistent key found, generate and store a new one.
+// 	key, err := crypto.GenerateKey()
+// 	if err != nil {
+// 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
+// 	}
+// 	instanceDir := filepath.Join(c.DataDir, c.name())
+// 	if err := os.MkdirAll(instanceDir, 0700); err != nil {
+// 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
+// 		return key
+// 	}
+// 	keyfile = filepath.Join(instanceDir, datadirPrivateKey)
+// 	if err := crypto.SaveECDSA(keyfile, key); err != nil {
+// 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
+// 	}
+// 	return key
+// }
 
-// StaticNodes returns a list of node enode URLs configured as static nodes.
-func (c *Config) StaticNodes() []*enode.Node {
-	return c.parsePersistentNodes(&c.staticNodesWarning, c.ResolvePath(datadirStaticNodes))
-}
+// // StaticNodes returns a list of node enode URLs configured as static nodes.
+// func (c *Config) StaticNodes() []*enode.Node {
+// 	return c.parsePersistentNodes(&c.staticNodesWarning, c.ResolvePath(datadirStaticNodes))
+// }
 
-// TrustedNodes returns a list of node enode URLs configured as trusted nodes.
-func (c *Config) TrustedNodes() []*enode.Node {
-	return c.parsePersistentNodes(&c.trustedNodesWarning, c.ResolvePath(datadirTrustedNodes))
-}
+// // TrustedNodes returns a list of node enode URLs configured as trusted nodes.
+// func (c *Config) TrustedNodes() []*enode.Node {
+// 	return c.parsePersistentNodes(&c.trustedNodesWarning, c.ResolvePath(datadirTrustedNodes))
+// }
 
-// parsePersistentNodes parses a list of discovery node URLs loaded from a .json
-// file from within the data directory.
-func (c *Config) parsePersistentNodes(w *bool, path string) []*enode.Node {
-	// Short circuit if no node config is present
-	if c.DataDir == "" {
-		return nil
-	}
-	if _, err := os.Stat(path); err != nil {
-		return nil
-	}
-	c.warnOnce(w, "Found deprecated node list file %s, please use the TOML config file instead.", path)
+// // parsePersistentNodes parses a list of discovery node URLs loaded from a .json
+// // file from within the data directory.
+// func (c *Config) parsePersistentNodes(w *bool, path string) []*enode.Node {
+// 	// Short circuit if no node config is present
+// 	if c.DataDir == "" {
+// 		return nil
+// 	}
+// 	if _, err := os.Stat(path); err != nil {
+// 		return nil
+// 	}
+// 	c.warnOnce(w, "Found deprecated node list file %s, please use the TOML config file instead.", path)
 
-	// Load the nodes from the config file.
-	var nodelist []string
-	if err := common.LoadJSON(path, &nodelist); err != nil {
-		log.Error(fmt.Sprintf("Can't load node list file: %v", err))
-		return nil
-	}
-	// Interpret the list as a discovery node array
-	var nodes []*enode.Node
-	for _, url := range nodelist {
-		if url == "" {
-			continue
-		}
-		node, err := enode.Parse(enode.ValidSchemes, url)
-		if err != nil {
-			log.Error(fmt.Sprintf("Node URL %s: %v\n", url, err))
-			continue
-		}
-		nodes = append(nodes, node)
-	}
-	return nodes
-}
+// 	// Load the nodes from the config file.
+// 	var nodelist []string
+// 	if err := common.LoadJSON(path, &nodelist); err != nil {
+// 		log.Error(fmt.Sprintf("Can't load node list file: %v", err))
+// 		return nil
+// 	}
+// 	// Interpret the list as a discovery node array
+// 	var nodes []*enode.Node
+// 	for _, url := range nodelist {
+// 		if url == "" {
+// 			continue
+// 		}
+// 		node, err := enode.Parse(enode.ValidSchemes, url)
+// 		if err != nil {
+// 			log.Error(fmt.Sprintf("Node URL %s: %v\n", url, err))
+// 			continue
+// 		}
+// 		nodes = append(nodes, node)
+// 	}
+// 	return nodes
+// }
 
 // AccountConfig determines the settings for scrypt and keydirectory
 func (c *Config) AccountConfig() (int, int, string, error) {
@@ -445,12 +438,12 @@ func (c *Config) AccountConfig() (int, int, string, error) {
 	switch {
 	case filepath.IsAbs(c.KeyStoreDir):
 		keydir = c.KeyStoreDir
-	case c.DataDir != "":
-		if c.KeyStoreDir == "" {
-			keydir = filepath.Join(c.DataDir, datadirDefaultKeyStore)
-		} else {
-			keydir, err = filepath.Abs(c.KeyStoreDir)
-		}
+	// case c.DataDir != "":
+	// 	if c.KeyStoreDir == "" {
+	// 		keydir = filepath.Join(c.DataDir, datadirDefaultKeyStore)
+	// 	} else {
+	// 		keydir, err = filepath.Abs(c.KeyStoreDir)
+	// 	}
 	case c.KeyStoreDir != "":
 		keydir, err = filepath.Abs(c.KeyStoreDir)
 	}
@@ -521,19 +514,19 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	return accounts.NewManager(&accounts.Config{InsecureUnlockAllowed: conf.InsecureUnlockAllowed}, backends...), ephemeral, nil
 }
 
-var warnLock sync.Mutex
+// var warnLock sync.Mutex
 
-func (c *Config) warnOnce(w *bool, format string, args ...interface{}) {
-	warnLock.Lock()
-	defer warnLock.Unlock()
+// func (c *Config) warnOnce(w *bool, format string, args ...interface{}) {
+// 	warnLock.Lock()
+// 	defer warnLock.Unlock()
 
-	if *w {
-		return
-	}
-	l := c.Logger
-	if l == nil {
-		l = log.Root()
-	}
-	l.Warn(fmt.Sprintf(format, args...))
-	*w = true
-}
+// 	if *w {
+// 		return
+// 	}
+// 	l := c.Logger
+// 	if l == nil {
+// 		l = log.Root()
+// 	}
+// 	l.Warn(fmt.Sprintf(format, args...))
+// 	*w = true
+// }

@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/core"
-	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/state/snapshot"
 	"github.com/sisu-network/dcore/core/types"
@@ -84,13 +83,13 @@ type stEnv struct {
 	Timestamp  uint64         `json:"currentTimestamp"  gencodec:"required"`
 }
 
-type stEnvMarshaling struct {
-	Coinbase   common.UnprefixedAddress
-	Difficulty *math.HexOrDecimal256
-	GasLimit   math.HexOrDecimal64
-	Number     math.HexOrDecimal64
-	Timestamp  math.HexOrDecimal64
-}
+// type stEnvMarshaling struct {
+// 	Coinbase   common.UnprefixedAddress
+// 	Difficulty *math.HexOrDecimal256
+// 	GasLimit   math.HexOrDecimal64
+// 	Number     math.HexOrDecimal64
+// 	Timestamp  math.HexOrDecimal64
+// }
 
 //go:generate gencodec -type stTransaction -field-override stTransactionMarshaling -out gen_sttransaction.go
 
@@ -105,12 +104,12 @@ type stTransaction struct {
 	PrivateKey  []byte              `json:"secretKey"`
 }
 
-type stTransactionMarshaling struct {
-	GasPrice   *math.HexOrDecimal256
-	Nonce      math.HexOrDecimal64
-	GasLimit   []math.HexOrDecimal64
-	PrivateKey hexutil.Bytes
-}
+// type stTransactionMarshaling struct {
+// 	GasPrice   *math.HexOrDecimal256
+// 	Nonce      math.HexOrDecimal64
+// 	GasLimit   []math.HexOrDecimal64
+// 	PrivateKey hexutil.Bytes
+// }
 
 // GetChainConfig takes a fork definition and returns a chain config.
 // The fork definition can be
@@ -149,66 +148,66 @@ func (t *StateTest) Subtests() []StateSubtest {
 	return sub
 }
 
-// Run executes a specific subtest and verifies the post-state and logs
-func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*snapshot.Tree, *state.StateDB, error) {
-	snaps, statedb, root, err := t.RunNoVerify(subtest, vmconfig, snapshotter)
-	if err != nil {
-		return snaps, statedb, err
-	}
-	post := t.json.Post[subtest.Fork][subtest.Index]
-	// N.B: We need to do this in a two-step process, because the first Commit takes care
-	// of suicides, and we need to touch the coinbase _after_ it has potentially suicided.
-	if root != common.Hash(post.Root) {
-		return snaps, statedb, fmt.Errorf("post state root mismatch: got %x, want %x", root, post.Root)
-	}
-	if logs := rlpHash(statedb.Logs()); logs != common.Hash(post.Logs) {
-		return snaps, statedb, fmt.Errorf("post state logs hash mismatch: got %x, want %x", logs, post.Logs)
-	}
-	return snaps, statedb, nil
-}
+// // Run executes a specific subtest and verifies the post-state and logs
+// func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*snapshot.Tree, *state.StateDB, error) {
+// 	snaps, statedb, root, err := t.RunNoVerify(subtest, vmconfig, snapshotter)
+// 	if err != nil {
+// 		return snaps, statedb, err
+// 	}
+// 	post := t.json.Post[subtest.Fork][subtest.Index]
+// 	// N.B: We need to do this in a two-step process, because the first Commit takes care
+// 	// of suicides, and we need to touch the coinbase _after_ it has potentially suicided.
+// 	if root != common.Hash(post.Root) {
+// 		return snaps, statedb, fmt.Errorf("post state root mismatch: got %x, want %x", root, post.Root)
+// 	}
+// 	if logs := rlpHash(statedb.Logs()); logs != common.Hash(post.Logs) {
+// 		return snaps, statedb, fmt.Errorf("post state logs hash mismatch: got %x, want %x", logs, post.Logs)
+// 	}
+// 	return snaps, statedb, nil
+// }
 
-// RunNoVerify runs a specific subtest and returns the statedb and post-state root
-func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*snapshot.Tree, *state.StateDB, common.Hash, error) {
-	config, eips, err := GetChainConfig(subtest.Fork)
-	if err != nil {
-		return nil, nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
-	}
-	vmconfig.ExtraEips = eips
-	block := t.genesis(config).ToBlock(nil)
-	snaps, statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
+// // RunNoVerify runs a specific subtest and returns the statedb and post-state root
+// func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapshotter bool) (*snapshot.Tree, *state.StateDB, common.Hash, error) {
+// 	config, eips, err := GetChainConfig(subtest.Fork)
+// 	if err != nil {
+// 		return nil, nil, common.Hash{}, UnsupportedForkError{subtest.Fork}
+// 	}
+// 	vmconfig.ExtraEips = eips
+// 	block := t.genesis(config).ToBlock(nil)
+// 	snaps, statedb := MakePreState(rawdb.NewMemoryDatabase(), t.json.Pre, snapshotter)
 
-	post := t.json.Post[subtest.Fork][subtest.Index]
-	msg, err := t.json.Tx.toMessage(post)
-	if err != nil {
-		return nil, nil, common.Hash{}, err
-	}
+// 	post := t.json.Post[subtest.Fork][subtest.Index]
+// 	msg, err := t.json.Tx.toMessage(post)
+// 	if err != nil {
+// 		return nil, nil, common.Hash{}, err
+// 	}
 
-	// Prepare the EVM.
-	txContext := core.NewEVMTxContext(msg)
-	context := core.NewEVMBlockContext(block.Header(), nil, &t.json.Env.Coinbase)
-	context.GetHash = vmTestBlockHash
-	evm := vm.NewEVM(context, txContext, statedb, config, vmconfig)
+// 	// Prepare the EVM.
+// 	txContext := core.NewEVMTxContext(msg)
+// 	context := core.NewEVMBlockContext(block.Header(), nil, &t.json.Env.Coinbase)
+// 	context.GetHash = vmTestBlockHash
+// 	evm := vm.NewEVM(context, txContext, statedb, config, vmconfig)
 
-	// Execute the message.
-	snapshot := statedb.Snapshot()
-	gaspool := new(core.GasPool)
-	gaspool.AddGas(block.GasLimit())
-	if _, err := core.ApplyMessage(evm, msg, gaspool); err != nil {
-		statedb.RevertToSnapshot(snapshot)
-	}
+// 	// Execute the message.
+// 	snapshot := statedb.Snapshot()
+// 	gaspool := new(core.GasPool)
+// 	gaspool.AddGas(block.GasLimit())
+// 	if _, err := core.ApplyMessage(evm, msg, gaspool); err != nil {
+// 		statedb.RevertToSnapshot(snapshot)
+// 	}
 
-	// Commit block
-	statedb.Commit(config.IsEIP158(block.Number()))
-	// Add 0-value mining reward. This only makes a difference in the cases
-	// where
-	// - the coinbase suicided, or
-	// - there are only 'bad' transactions, which aren't executed. In those cases,
-	//   the coinbase gets no txfee, so isn't created, and thus needs to be touched
-	statedb.AddBalance(block.Coinbase(), new(big.Int))
-	// And _now_ get the state root
-	root := statedb.IntermediateRoot(config.IsEIP158(block.Number()))
-	return snaps, statedb, root, nil
-}
+// 	// Commit block
+// 	statedb.Commit(config.IsEIP158(block.Number()))
+// 	// Add 0-value mining reward. This only makes a difference in the cases
+// 	// where
+// 	// - the coinbase suicided, or
+// 	// - there are only 'bad' transactions, which aren't executed. In those cases,
+// 	//   the coinbase gets no txfee, so isn't created, and thus needs to be touched
+// 	statedb.AddBalance(block.Coinbase(), new(big.Int))
+// 	// And _now_ get the state root
+// 	root := statedb.IntermediateRoot(config.IsEIP158(block.Number()))
+// 	return snaps, statedb, root, nil
+// }
 
 func (t *StateTest) gasLimit(subtest StateSubtest) uint64 {
 	return t.json.Tx.GasLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Gas]
