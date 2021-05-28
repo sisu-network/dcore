@@ -1,23 +1,18 @@
-1) Add API backend callback:
-- https://github.com/sisu-network/dcore/commit/15c36ab1b54456f229e75e4189d1cb77cf9471ac
-2) Disable gas price:
-- https://github.com/sisu-network/dcore/commit/02bd543118948e4e1c787a11a27c07f5baf7ef07
+1) Change all import to use dcore instead of go-ethereum:
 
-3) Add EVM API & Net API && Web3 API:
+2) Add API backend callback:
+3) Add w.minerCallbacks.OnSealFinish in worker.go
+4) Add callback OnTxSubmitted in SubmitTransaction
+5) Be careful with filter_system.go. Make sure all tx subscrions are handled properly
+6) Use min gas price in gasprice.go
+7) Disable gas price:
+- https://github.com/sisu-network/dcore/commit/02bd543118948e4e1c787a11a27c07f5baf7ef07
+8) Execute TX immediately:
+- Make worker's commit function return receipt
+https://github.com/sisu-network/dcore/commit/e85c6b4b4b1860ef315495914b3d4c6a0182631f
+9)Remove core/vm/contracts_stateful.go
+10) Add EVM API & Net API && Web3 API (if there are not in the extra folder):
 - https://github.com/sisu-network/dcore/commit/cc8dfbefe12cd50cbda071b0cd6ac32944dbd5d7
-- https://github.com/sisu-network/dcore/commit/770f1d343834074a5dd57fcacb20f05f1cdd79c8
+- https://github.com/sisu-network/dcore/commit/770f1d343834074a5dd57fcacb20f05f1cdd79c8`
 - https://github.com/sisu-network/dcore/commit/65e027b25f3c00b7783012885be2d7bc06d57007
 
-4) Don't use initGenesis to load initial state:
-- https://github.com/sisu-network/dcore/commit/178ec0470d3ed047ba8862792bd0935bc2a1e051
-
-5) Use NewEIP2930Signer:
-6) Execute TX immediately:
-7) Intermediate root hash.
-
-8) Remove core/vm/contracts_stateful.go
-9) Use min gas price in gasprice.go
-
-10) Add w.minerCallbacks.OnSealFinish in worker.go
-11) Add callback OnTxSubmitted in SubmitTransaction
-12) Carefule with filter_system.go
