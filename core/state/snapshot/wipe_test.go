@@ -21,8 +21,8 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/ethdb/memorydb"
+	"github.com/sisu-network/dcore/core/rawdb"
 )
 
 // Tests that given a database with random data content, all parts of a snapshot
