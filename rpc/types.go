@@ -57,6 +57,7 @@ type jsonWriter interface {
 type BlockNumber int64
 
 const (
+	AcceptedBlockNumber = BlockNumber(-3)
 	PendingBlockNumber  = BlockNumber(-2)
 	LatestBlockNumber   = BlockNumber(-1)
 	EarliestBlockNumber = BlockNumber(0)
@@ -99,6 +100,11 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 
 func (bn BlockNumber) Int64() int64 {
 	return (int64)(bn)
+}
+
+// IsAccepted returns true if this blockNumber should be treated as a request for the last accepted block
+func (bn BlockNumber) IsAccepted() bool {
+	return bn < EarliestBlockNumber && bn >= AcceptedBlockNumber
 }
 
 type BlockNumberOrHash struct {

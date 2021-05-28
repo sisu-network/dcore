@@ -582,3 +582,7 @@ func (s *Ethereum) Stop() error {
 
 	return nil
 }
+
+func (s *Ethereum) LastAcceptedBlock() *types.Block {
+	return s.blockchain.LastAcceptedBlock()
+}
