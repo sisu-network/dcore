@@ -29,9 +29,9 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/params"
 )
 
 const (
@@ -224,6 +224,7 @@ type TxPool struct {
 	chain       blockChain
 	gasPrice    *big.Int
 	txFeed      event.Feed
+	headFeed    event.Feed
 	scope       event.SubscriptionScope
 	signer      types.Signer
 	mu          sync.RWMutex
@@ -340,6 +341,7 @@ func (pool *TxPool) loop() {
 			if ev.Block != nil {
 				pool.requestReset(head.Header(), ev.Block.Header())
 				head = ev.Block
+				pool.headFeed.Send(NewTxPoolHeadEvent{Block: head})
 			}
 
 		// System shutdown.
@@ -410,6 +412,12 @@ func (pool *TxPool) Stop() {
 // starts sending event to the given channel.
 func (pool *TxPool) SubscribeNewTxsEvent(ch chan<- NewTxsEvent) event.Subscription {
 	return pool.scope.Track(pool.txFeed.Subscribe(ch))
+}
+
+// SubscribeNewHeadEvent registers a subscription of NewHeadEvent and
+// starts sending event to the given channel.
+func (pool *TxPool) SubscribeNewHeadEvent(ch chan<- NewTxPoolHeadEvent) event.Subscription {
+	return pool.scope.Track(pool.headFeed.Subscribe(ch))
 }
 
 // GasPrice returns the current gas price enforced by the transaction pool.

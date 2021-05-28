@@ -21,6 +21,10 @@ import (
 	"github.com/sisu-network/dcore/core/types"
 )
 
+// NewTxPoolHeadEvent is posted when the pool head is updated.
+// TODO: remove unnecessary event
+type NewTxPoolHeadEvent struct{ Block *types.Block }
+
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
 type NewTxsEvent struct{ Txs []*types.Transaction }
 

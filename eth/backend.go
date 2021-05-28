@@ -32,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/consensus"
@@ -48,12 +47,17 @@ import (
 	"github.com/sisu-network/dcore/internal/ethapi"
 	"github.com/sisu-network/dcore/miner"
 	"github.com/sisu-network/dcore/node"
+	"github.com/sisu-network/dcore/params"
 	"github.com/sisu-network/dcore/rpc"
 )
 
 // Config contains the configuration options of the ETH protocol.
 // Deprecated: use ethconfig.Config instead.
 type Config = ethconfig.Config
+
+var (
+	DefaultSettings Settings = Settings{MaxBlocksPerRequest: 2000}
+)
 
 type Settings struct {
 	MaxBlocksPerRequest int64 // Maximum number of blocks to serve per getLogs request

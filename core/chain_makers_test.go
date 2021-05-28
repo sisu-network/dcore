@@ -21,11 +21,11 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/sisu-network/dcore/consensus/dummy"
 	"github.com/sisu-network/dcore/core/rawdb"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 )
 
 func ExampleGenerateChain() {

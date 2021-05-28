@@ -31,7 +31,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/sisu-network/dcore/params"
 )
 
 // Command line flags to configure the interpreters.

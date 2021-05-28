@@ -32,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/accounts/keystore"
@@ -41,6 +40,7 @@ import (
 	"github.com/sisu-network/dcore/core/state"
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
+	"github.com/sisu-network/dcore/params"
 	"github.com/sisu-network/dcore/rpc"
 	"github.com/tyler-smith/go-bip39"
 )
