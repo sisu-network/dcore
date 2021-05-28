@@ -238,6 +238,10 @@ func (b *EthAPIBackend) SubscribeChainAcceptedEvent(ch chan<- core.ChainEvent) e
 	return b.eth.BlockChain().SubscribeChainAcceptedEvent(ch)
 }
 
+func (b *EthAPIBackend) SubscribeAcceptedLogsEvent(ch chan<- []*types.Log) event.Subscription {
+	return b.eth.BlockChain().SubscribeAcceptedLogsEvent(ch)
+}
+
 func (b *EthAPIBackend) SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription {
 	return b.eth.BlockChain().SubscribeChainHeadEvent(ch)
 }

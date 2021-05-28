@@ -1667,6 +1667,8 @@ func (bc *BlockChain) Accept(block *types.Block) error {
 	bc.chainmu.Lock()
 	defer bc.chainmu.Unlock()
 
+	fmt.Println("Blockchain-Accept: checking parent hash...")
+
 	// If the lastAccepted block is non-nil (nil during initialization), the
 	// block we are accepting must have a parent hash equal to it.
 	if bc.lastAccepted != nil && bc.lastAccepted.Hash() != block.ParentHash() {
@@ -1687,9 +1689,12 @@ func (bc *BlockChain) Accept(block *types.Block) error {
 		}
 	}
 
+	fmt.Println("Blockchain-Accept: Setting bc.lastAccepted...")
+
 	bc.lastAccepted = block
 
 	// Fetch block logs
+	fmt.Println("Blockchain-Accept: Fetching block logs...")
 	receipts := rawdb.ReadReceipts(bc.db, block.Hash(), block.NumberU64(), bc.chainConfig)
 	var logs []*types.Log
 	for _, receipt := range receipts {
@@ -1700,13 +1705,17 @@ func (bc *BlockChain) Accept(block *types.Block) error {
 	}
 
 	// Update accepted feeds
+	fmt.Println("Blockchain-Accept: Updating accepted feeds....")
 	bc.chainAcceptedFeed.Send(ChainEvent{Block: block, Hash: block.Hash(), Logs: logs})
 	if len(logs) > 0 {
 		bc.logsAcceptedFeed.Send(logs)
 	}
+	fmt.Println("Blockchain-Accept: bc.txAcceptedFeed.Send")
 	if len(block.Transactions()) != 0 {
 		bc.txAcceptedFeed.Send(NewTxsEvent{block.Transactions()})
 	}
+
+	fmt.Println("Blockchain-Accept: Done!!!!!")
 
 	return nil
 }
@@ -2829,4 +2838,9 @@ func (bc *BlockChain) SubscribeBlockProcessingEvent(ch chan<- bool) event.Subscr
 // SubscribeAcceptedTransactionEvent registers a subscription of accepted transactions
 func (bc *BlockChain) SubscribeAcceptedTransactionEvent(ch chan<- NewTxsEvent) event.Subscription {
 	return bc.scope.Track(bc.txAcceptedFeed.Subscribe(ch))
+}
+
+// SubscribeAcceptedLogsEvent registers a subscription of accepted []*types.Log.
+func (bc *BlockChain) SubscribeAcceptedLogsEvent(ch chan<- []*types.Log) event.Subscription {
+	return bc.scope.Track(bc.logsAcceptedFeed.Subscribe(ch))
 }
