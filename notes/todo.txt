@@ -1,0 +1,1 @@
+1) Check w.chainConfig.IsApricotPhase1 in PrepareNewBlock of worker.go

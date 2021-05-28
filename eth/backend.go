@@ -28,7 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
@@ -44,6 +43,7 @@ import (
 	"github.com/sisu-network/dcore/core/types"
 	"github.com/sisu-network/dcore/core/vm"
 	"github.com/sisu-network/dcore/eth/ethconfig"
+	"github.com/sisu-network/dcore/eth/filters"
 	"github.com/sisu-network/dcore/eth/gasprice"
 	"github.com/sisu-network/dcore/internal/ethapi"
 	"github.com/sisu-network/dcore/miner"
@@ -456,7 +456,7 @@ func (s *Ethereum) SetEtherbase(etherbase common.Address) {
 // StartMining starts the miner with the given number of CPU threads. If mining
 // is already running, this method adjust the number of threads allowed to use
 // and updates the minimum price required by the transaction pool.
-func (s *Ethereum) StartMining(threads int) error {
+func (s *Ethereum) StartMining() error {
 	// // Update the thread count within the consensus engine
 	// type threaded interface {
 	// 	SetThreads(threads int)
