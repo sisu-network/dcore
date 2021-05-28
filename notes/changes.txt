@@ -17,3 +17,6 @@
 
 8) Remove core/vm/contracts_stateful.go
 9) Use min gas price in gasprice.go
+
+10) Add w.minerCallbacks.OnSealFinish in worker.go
+11) Add callback OnTxSubmitted in SubmitTransaction

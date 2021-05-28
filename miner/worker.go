@@ -18,6 +18,7 @@ package miner
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"sync"
 	"sync/atomic"
@@ -188,9 +189,11 @@ type worker struct {
 	skipSealHook func(*task) bool                   // Method to decide whether skipping the sealing.
 	fullTaskHook func()                             // Method to call before pushing the full sealing task.
 	resubmitHook func(time.Duration, time.Duration) // Method to call upon updating resubmitting interval.
+
+	minerCallbacks *MinerCallbacks
 }
 
-func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, eth Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool) *worker {
+func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, eth Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool, mcb *MinerCallbacks) *worker {
 	worker := &worker{
 		config:             config,
 		chainConfig:        chainConfig,
@@ -213,6 +216,7 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 		startCh:            make(chan struct{}, 1),
 		resubmitIntervalCh: make(chan time.Duration),
 		resubmitAdjustCh:   make(chan *intervalAdjust, resubmitAdjustChanSize),
+		minerCallbacks:     mcb,
 	}
 	// Subscribe NewTxsEvent for tx pool
 	worker.txsSub = eth.TxPool().SubscribeNewTxsEvent(worker.txsCh)
@@ -573,6 +577,10 @@ func (w *worker) taskLoop() {
 			// Reject duplicate sealing work due to resubmitting.
 			sealHash := w.engine.SealHash(task.block.Header())
 			if sealHash == prev {
+				log.Warn("Reject duplicate sealing work due to resubmitting.")
+				if w.minerCallbacks.OnSealDrop != nil {
+					w.minerCallbacks.OnSealDrop(task.block)
+				}
 				continue
 			}
 			// Interrupt previous sealing operation
@@ -580,6 +588,9 @@ func (w *worker) taskLoop() {
 			stopCh, prev = make(chan struct{}), sealHash
 
 			if w.skipSealHook != nil && w.skipSealHook(task) {
+				if w.minerCallbacks.OnSealDrop != nil {
+					w.minerCallbacks.OnSealDrop(task.block)
+				}
 				continue
 			}
 			w.pendingMu.Lock()
@@ -649,6 +660,11 @@ func (w *worker) resultLoop() {
 			}
 			log.Info("Successfully sealed new block", "number", block.Number(), "sealhash", sealhash, "hash", hash,
 				"elapsed", common.PrettyDuration(time.Since(task.createdAt)))
+			if w.minerCallbacks.OnSealFinish != nil {
+				if err := w.minerCallbacks.OnSealFinish(block); err != nil {
+					log.Error(fmt.Sprintf("Miner callback OnSealFinish returned error: %s", err))
+				}
+			}
 
 			// Broadcast the block and announce chain insertion event
 			w.mux.Post(core.NewMinedBlockEvent{Block: block})
