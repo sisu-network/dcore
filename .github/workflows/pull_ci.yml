@@ -30,8 +30,6 @@ jobs:
           go-version: ${{ matrix.go }}
       - run: go mod download
         shell: bash
-    # - run: ./scripts/build.sh evm
-    #   shell: bash
     # - run: ./scripts/build_test.sh
     #   shell: bash
   # e2e:
