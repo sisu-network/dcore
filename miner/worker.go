@@ -1123,13 +1123,13 @@ func (w *worker) PrepareNewBlock() {
 		timestamp = int64(parent.Time())
 	}
 
-	var gasLimit uint64
+	// var gasLimit uint64
 	// if w.chainConfig.IsApricotPhase1(big.NewInt(timestamp)) {
 	// 	gasLimit = w.config.ApricotPhase1GasLimit
 	// } else {
 	// 	gasLimit = core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
 	// }
-	gasLimit = core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
+	gasLimit := core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
 
 	num := parent.Number()
 	header := &types.Header{

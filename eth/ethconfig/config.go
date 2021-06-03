@@ -78,6 +78,42 @@ var Defaults = Config{
 	RPCTxFeeCap: 1, // 1 ether
 }
 
+func NewDefaultConfig() Config {
+	return Config{
+		SyncMode: downloader.FastSync,
+		// Ethash: ethash.Config{
+		// 	CacheDir:         "ethash",
+		// 	CachesInMem:      2,
+		// 	CachesOnDisk:     3,
+		// 	CachesLockMmap:   false,
+		// 	DatasetsInMem:    1,
+		// 	DatasetsOnDisk:   2,
+		// 	DatasetsLockMmap: false,
+		// },
+		NetworkId:               1,
+		TxLookupLimit:           2350000,
+		LightPeers:              100,
+		UltraLightFraction:      75,
+		DatabaseCache:           512,
+		TrieCleanCache:          154,
+		TrieCleanCacheJournal:   "triecache",
+		TrieCleanCacheRejournal: 60 * time.Minute,
+		TrieDirtyCache:          256,
+		TrieTimeout:             60 * time.Minute,
+		SnapshotCache:           102,
+		Miner: miner.Config{
+			GasFloor: 8000000,
+			GasCeil:  8000000,
+			GasPrice: big.NewInt(params.GWei),
+			Recommit: 3 * time.Second,
+		},
+		TxPool:      core.DefaultTxPoolConfig,
+		RPCGasCap:   25000000,
+		GPO:         FullNodeGPO,
+		RPCTxFeeCap: 1, // 1 ether
+	}
+}
+
 // func init() {
 // 	home := os.Getenv("HOME")
 // 	if home == "" {

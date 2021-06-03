@@ -21,17 +21,14 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"runtime"
 	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sisu-network/dcore/accounts"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/consensus/dummy"
@@ -291,22 +288,22 @@ func New(stack *node.Node, config *ethconfig.Config,
 	return eth, nil
 }
 
-func makeExtraData(extra []byte) []byte {
-	if len(extra) == 0 {
-		// create default extradata
-		extra, _ = rlp.EncodeToBytes([]interface{}{
-			uint(params.VersionMajor<<16 | params.VersionMinor<<8 | params.VersionPatch),
-			"geth",
-			runtime.Version(),
-			runtime.GOOS,
-		})
-	}
-	if uint64(len(extra)) > params.MaximumExtraDataSize {
-		log.Warn("Miner extra data exceed limit", "extra", hexutil.Bytes(extra), "limit", params.MaximumExtraDataSize)
-		extra = nil
-	}
-	return extra
-}
+// func makeExtraData(extra []byte) []byte {
+// 	if len(extra) == 0 {
+// 		// create default extradata
+// 		extra, _ = rlp.EncodeToBytes([]interface{}{
+// 			uint(params.VersionMajor<<16 | params.VersionMinor<<8 | params.VersionPatch),
+// 			"geth",
+// 			runtime.Version(),
+// 			runtime.GOOS,
+// 		})
+// 	}
+// 	if uint64(len(extra)) > params.MaximumExtraDataSize {
+// 		log.Warn("Miner extra data exceed limit", "extra", hexutil.Bytes(extra), "limit", params.MaximumExtraDataSize)
+// 		extra = nil
+// 	}
+// 	return extra
+// }
 
 // APIs return the collection of RPC services the ethereum package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.

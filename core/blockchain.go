@@ -85,12 +85,12 @@ var (
 )
 
 const (
-	bodyCacheLimit       = 256
-	blockCacheLimit      = 256
-	receiptsCacheLimit   = 32
-	txLookupCacheLimit   = 1024
-	maxFutureBlocks      = 256
-	maxTimeFutureBlocks  = 30
+	bodyCacheLimit     = 256
+	blockCacheLimit    = 256
+	receiptsCacheLimit = 32
+	txLookupCacheLimit = 1024
+	// maxFutureBlocks      = 256
+	// maxTimeFutureBlocks  = 30
 	TriesInMemory        = 128
 	repairBlockBatchSize = 10
 
