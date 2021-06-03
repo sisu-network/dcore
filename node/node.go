@@ -52,8 +52,8 @@ type Node struct {
 
 const (
 	initializingState = iota
-	runningState
-	closedState
+	// runningState
+	// closedState
 )
 
 // New creates a new P2P node, ready for protocol registration.

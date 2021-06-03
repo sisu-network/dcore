@@ -17,11 +17,18 @@
 package tracers
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/sisu-network/dcore/consensus"
 	"github.com/sisu-network/dcore/core"
+	"github.com/sisu-network/dcore/core/rawdb"
+	"github.com/sisu-network/dcore/core/state"
+	"github.com/sisu-network/dcore/core/types"
+	"github.com/sisu-network/dcore/core/vm"
 	"github.com/sisu-network/dcore/params"
 )
 
@@ -94,13 +101,13 @@ type testBackend struct {
 // 	return b.chain.GetBlockByNumber(uint64(number)), nil
 // }
 
-// func (b *testBackend) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, common.Hash, uint64, uint64, error) {
-// 	tx, hash, blockNumber, index := rawdb.ReadTransaction(b.chaindb, txHash)
-// 	if tx == nil {
-// 		return nil, common.Hash{}, 0, 0, errTransactionNotFound
-// 	}
-// 	return tx, hash, blockNumber, index, nil
-// }
+func (b *testBackend) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, common.Hash, uint64, uint64, error) {
+	tx, hash, blockNumber, index := rawdb.ReadTransaction(b.chaindb, txHash)
+	if tx == nil {
+		return nil, common.Hash{}, 0, 0, errTransactionNotFound
+	}
+	return tx, hash, blockNumber, index, nil
+}
 
 // func (b *testBackend) RPCGasCap() uint64 {
 // 	return 25000000
@@ -126,35 +133,35 @@ type testBackend struct {
 // 	return statedb, nil
 // }
 
-// func (b *testBackend) StateAtTransaction(ctx context.Context, block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, error) {
-// 	parent := b.chain.GetBlock(block.ParentHash(), block.NumberU64()-1)
-// 	if parent == nil {
-// 		return nil, vm.BlockContext{}, nil, errBlockNotFound
-// 	}
-// 	statedb, err := b.chain.StateAt(parent.Root())
-// 	if err != nil {
-// 		return nil, vm.BlockContext{}, nil, errStateNotFound
-// 	}
-// 	if txIndex == 0 && len(block.Transactions()) == 0 {
-// 		return nil, vm.BlockContext{}, statedb, nil
-// 	}
-// 	// Recompute transactions up to the target index.
-// 	signer := types.MakeSigner(b.chainConfig, block.Number())
-// 	for idx, tx := range block.Transactions() {
-// 		msg, _ := tx.AsMessage(signer)
-// 		txContext := core.NewEVMTxContext(msg)
-// 		context := core.NewEVMBlockContext(block.Header(), b.chain, nil)
-// 		if idx == txIndex {
-// 			return msg, context, statedb, nil
-// 		}
-// 		vmenv := vm.NewEVM(context, txContext, statedb, b.chainConfig, vm.Config{})
-// 		if _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas())); err != nil {
-// 			return nil, vm.BlockContext{}, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
-// 		}
-// 		statedb.Finalise(vmenv.ChainConfig().IsEIP158(block.Number()))
-// 	}
-// 	return nil, vm.BlockContext{}, nil, fmt.Errorf("transaction index %d out of range for block %#x", txIndex, block.Hash())
-// }
+func (b *testBackend) StateAtTransaction(ctx context.Context, block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, error) {
+	parent := b.chain.GetBlock(block.ParentHash(), block.NumberU64()-1)
+	if parent == nil {
+		return nil, vm.BlockContext{}, nil, errBlockNotFound
+	}
+	statedb, err := b.chain.StateAt(parent.Root())
+	if err != nil {
+		return nil, vm.BlockContext{}, nil, errStateNotFound
+	}
+	if txIndex == 0 && len(block.Transactions()) == 0 {
+		return nil, vm.BlockContext{}, statedb, nil
+	}
+	// Recompute transactions up to the target index.
+	signer := types.MakeSigner(b.chainConfig, block.Number())
+	for idx, tx := range block.Transactions() {
+		msg, _ := tx.AsMessage(signer)
+		txContext := core.NewEVMTxContext(msg)
+		context := core.NewEVMBlockContext(block.Header(), b.chain, nil)
+		if idx == txIndex {
+			return msg, context, statedb, nil
+		}
+		vmenv := vm.NewEVM(context, txContext, statedb, b.chainConfig, vm.Config{})
+		if _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas())); err != nil {
+			return nil, vm.BlockContext{}, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
+		}
+		statedb.Finalise(vmenv.ChainConfig().IsEIP158(block.Number()))
+	}
+	return nil, vm.BlockContext{}, nil, fmt.Errorf("transaction index %d out of range for block %#x", txIndex, block.Hash())
+}
 
 // func TestTraceCall(t *testing.T) {
 // 	t.Parallel()

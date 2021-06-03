@@ -680,16 +680,16 @@ func (api *API) traceBlock(ctx context.Context, block *types.Block, config *Trac
 // 	return dumps, nil
 // }
 
-// containsTx reports whether the transaction with a certain hash
-// is contained within the specified block.
-func containsTx(block *types.Block, hash common.Hash) bool {
-	for _, tx := range block.Transactions() {
-		if tx.Hash() == hash {
-			return true
-		}
-	}
-	return false
-}
+// // containsTx reports whether the transaction with a certain hash
+// // is contained within the specified block.
+// func containsTx(block *types.Block, hash common.Hash) bool {
+// 	for _, tx := range block.Transactions() {
+// 		if tx.Hash() == hash {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 // TraceTransaction returns the structured logs created during the execution of EVM
 // and returns them as a JSON object.
