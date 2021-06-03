@@ -176,7 +176,7 @@ func run(config *eth.Config, a1, a2, b1, b2 int, t *testing.T) {
 // a go channel and finally checks if they have the identical chain structure.
 func TestChain(t *testing.T) {
 	// configure the chain
-	config := ethconfig.DefaultConfig
+	config := ethconfig.NewDefaultConfig()
 	chainConfig := &params.ChainConfig{
 		ChainID:             big.NewInt(1),
 		HomesteadBlock:      big.NewInt(0),

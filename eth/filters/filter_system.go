@@ -324,6 +324,22 @@ func (es *EventSystem) SubscribePendingTxs(hashes chan []common.Hash) *Subscript
 	return es.subscribe(sub)
 }
 
+// SubscribeAcceptedTxs creates a subscription that writes transaction hashes for
+// transactions have been accepted.
+func (es *EventSystem) SubscribeAcceptedTxs(hashes chan []common.Hash) *Subscription {
+	sub := &subscription{
+		id:        rpc.NewID(),
+		typ:       AcceptedTransactionsSubscription,
+		created:   time.Now(),
+		logs:      make(chan []*types.Log),
+		hashes:    hashes,
+		headers:   make(chan *types.Header),
+		installed: make(chan struct{}),
+		err:       make(chan error),
+	}
+	return es.subscribe(sub)
+}
+
 type filterIndex map[Type]map[rpc.ID]*subscription
 
 func (es *EventSystem) handleLogs(filters filterIndex, ev []*types.Log) {
