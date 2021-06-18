@@ -1129,7 +1129,7 @@ func (w *worker) PrepareNewBlock() {
 	// } else {
 	// 	gasLimit = core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
 	// }
-	gasLimit := core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil)
+	gasLimit := w.config.BlockGasLimit
 
 	num := parent.Number()
 	header := &types.Header{
