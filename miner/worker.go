@@ -1119,8 +1119,7 @@ func (w *worker) PrepareNewBlock() {
 
 	parent := w.chain.CurrentBlock()
 	if parent.Time() >= uint64(timestamp) {
-		//timestamp = int64(parent.Time() + 1)
-		timestamp = int64(parent.Time())
+		timestamp = int64(parent.Time() + 1)
 	}
 
 	// var gasLimit uint64
