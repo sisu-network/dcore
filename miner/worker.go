@@ -1111,16 +1111,11 @@ func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 }
 
 // Added Code
-func (w *worker) PrepareNewBlock() {
+func (w *worker) PrepareNewBlock(timestamp time.Time) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
-	timestamp := time.Now().Unix()
-
 	parent := w.chain.CurrentBlock()
-	if parent.Time() >= uint64(timestamp) {
-		timestamp = int64(parent.Time() + 1)
-	}
 
 	// var gasLimit uint64
 	// if w.chainConfig.IsApricotPhase1(big.NewInt(timestamp)) {
@@ -1136,7 +1131,7 @@ func (w *worker) PrepareNewBlock() {
 		Number:     num.Add(num, common.Big1),
 		GasLimit:   gasLimit,
 		Extra:      nil,
-		Time:       uint64(timestamp),
+		Time:       uint64(timestamp.Unix()),
 	}
 	// Only set the coinbase if our consensus engine is running (avoid spurious block rewards)
 	if w.isRunning() {
