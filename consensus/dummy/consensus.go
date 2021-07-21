@@ -245,8 +245,6 @@ func (self *DummyEngine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, 
 }
 
 func (self *DummyEngine) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) (err error) {
-	fmt.Println("self.cb.OnSeal is nil = ", (self.cb.OnSeal == nil))
-
 	if self.cb.OnSeal != nil {
 		err = self.cb.OnSeal(block)
 	} else {
