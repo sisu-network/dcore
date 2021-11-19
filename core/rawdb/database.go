@@ -93,6 +93,11 @@ func (db *nofreezedb) Ancient(kind string, number uint64) ([]byte, error) {
 	return nil, errNotSupported
 }
 
+// AncientRange returns an error as we don't have a backing chain freezer.
+func (db *nofreezedb) AncientRange(kind string, start, max, maxByteSize uint64) ([][]byte, error) {
+	return nil, errNotSupported
+}
+
 // Ancients returns an error as we don't have a backing chain freezer.
 func (db *nofreezedb) Ancients() (uint64, error) {
 	return 0, errNotSupported
@@ -108,6 +113,11 @@ func (db *nofreezedb) AppendAncient(number uint64, hash, header, body, receipts,
 	return errNotSupported
 }
 
+// ModifyAncients is not supported.
+func (db *nofreezedb) ModifyAncients(func(ethdb.AncientWriteOp) error) (int64, error) {
+	return 0, errNotSupported
+}
+
 // TruncateAncients returns an error as we don't have a backing chain freezer.
 func (db *nofreezedb) TruncateAncients(items uint64) error {
 	return errNotSupported
@@ -116,6 +126,22 @@ func (db *nofreezedb) TruncateAncients(items uint64) error {
 // Sync returns an error as we don't have a backing chain freezer.
 func (db *nofreezedb) Sync() error {
 	return errNotSupported
+}
+
+func (db *nofreezedb) ReadAncients(fn func(reader ethdb.AncientReader) error) (err error) {
+	// Unlike other ancient-related methods, this method does not return
+	// errNotSupported when invoked.
+	// The reason for this is that the caller might want to do several things:
+	// 1. Check if something is in freezer,
+	// 2. If not, check leveldb.
+	//
+	// This will work, since the ancient-checks inside 'fn' will return errors,
+	// and the leveldb work will continue.
+	//
+	// If we instead were to return errNotSupported here, then the caller would
+	// have to explicitly check for that, having an extra clause to do the
+	// non-ancient operations.
+	return fn(db)
 }
 
 // NewDatabase creates a high level database on top of a given key-value data
